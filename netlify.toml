@@ -4,4 +4,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  timeout = 26
+
+[[edge_functions]]
+  function = "ai"
+  path = "/api/ai"
