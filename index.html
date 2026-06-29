@@ -1752,9 +1752,11 @@ ${docText}`;
     let clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
     const start=clean.indexOf('{');const end=clean.lastIndexOf('}');
     if(start!==-1&&end>start)clean=clean.slice(start,end+1);
-    // Walk character-by-character and fix any invalid escape sequences
-    function fixEscapes(s){let r='',i=0;while(i<s.length){if(s[i]==='\\'&&i+1<s.length){const n=s[i+1];if(['"','\\','/','b','f','n','r','t'].includes(n)){r+=s[i]+n;i+=2;}else if(n==='u'&&/[0-9a-fA-F]{4}/.test(s.slice(i+2,i+6))){r+=s[i]+n+s.slice(i+2,i+6);i+=6;}else{r+=n;i+=2;}}else{r+=s[i];i++;}}return r;}
-    clean=fixEscapes(clean);
+    // String-aware sanitizer: tracks in/out of JSON strings
+    // Fixes invalid escapes AND literal control chars inside string values
+    function sanitizeJson(s){let r='',i=0,inStr=false;while(i<s.length){const c=s[i];if(inStr){if(c==='\\'&&i+1<s.length){const n=s[i+1];if(['"','\\','/','b','f','n','r','t'].includes(n)){r+='\\'+n;i+=2;}else if(n==='u'&&/[0-9a-fA-F]{4}/.test(s.slice(i+2,i+6))){r+='\\u'+s.slice(i+2,i+6);i+=6;}else{r+=n;i+=2;}}else if(c==='"'){inStr=false;r+=c;i++;}else if(c.charCodeAt(0)<32){const m={'\n':'\\n','\r':'\\r','\t':'\\t','\b':'\\b','\f':'\\f'};r+=m[c]||('\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));i++;}else{r+=c;i++;}}else{if(c==='"')inStr=true;r+=c;i++;}}return r;}
+    clean=sanitizeJson(clean);
+    console.log('Raw Claude response:',raw.slice(0,800));
     bdAnalysisResult=JSON.parse(clean);
     document.getElementById('bd-loading').style.display='none';
     document.getElementById('bd-analyze-btn').style.display='';
