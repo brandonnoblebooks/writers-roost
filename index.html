@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Writer's Roost</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{
+  --bg:#faf7f2;--bg2:#ffffff;--bg3:#f0ebe3;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1a1008;--text2:#5a4a38;--text3:#9a8878;
+  --accent:#8B3A3A;--accent2:#6b2a2a;--accent-glow:rgba(139,58,58,0.12);
+  --green:#2a8050;--amber:#b87800;--red:#b83030;--blue:#2060a0;
+  --radius:10px;--radius-sm:6px;--shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+/* ── BOOKSHELF ── */
+#bookshelf{display:flex;flex-direction:column;min-height:100vh}
+.shelf-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.brand-name{font-size:18px;font-weight:700;color:var(--text);font-family:Georgia,serif}
+.brand-tagline{font-size:11px;color:var(--text3);margin-top:1px}
+.shelf-body{flex:1;padding:32px 28px;max-width:1100px;margin:0 auto;width:100%}
+.shelf-greeting{margin-bottom:28px}
+.shelf-greeting h2{font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px;font-family:Georgia,serif}
+.shelf-greeting p{font-size:13px;color:var(--text2)}
+.books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.book-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .15s}
+.book-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);border-color:var(--border2)}
+.book-spine{height:7px}
+.book-body{padding:13px}
+.book-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3;font-family:Georgia,serif}
+.book-genre{font-size:11px;color:var(--text3);margin-bottom:8px}
+.book-pills{display:flex;gap:5px;flex-wrap:wrap}
+.book-pill{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2)}
+.book-new{border:2px dashed var(--border2);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;gap:7px}
+.book-new:hover{border-color:var(--accent);background:var(--accent-glow)}
+.book-new i{font-size:22px;color:var(--text3)}
+.book-new span{font-size:12px;color:var(--text2);font-weight:500}
+
+/* ── APP SHELL ── */
+.app{display:none;height:100vh;height:100dvh}
+.app.open{display:flex}
+
+/* ── SIDEBAR ── */
+.sidebar{width:228px;min-width:228px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease;flex-shrink:0}
+.sidebar.collapsed{width:52px;min-width:52px}
+.sidebar-header{padding:13px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-book-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;font-family:Georgia,serif}
+.sidebar-book-name:hover{color:var(--accent)}
+.sidebar-book-genre{font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden}
+.collapse-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:3px 5px;border-radius:4px;font-size:12px;flex-shrink:0}
+.collapse-btn:hover{color:var(--accent);background:var(--bg3)}
+.sidebar.collapsed .sidebar-book-genre,.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-section,.sidebar.collapsed .authors-box,.sidebar.collapsed .sidebar-footer-text{display:none}
+.sidebar.collapsed .nav-item{justify-content:center;padding:9px 0}
+.nav{flex:1;padding:6px 0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.nav-section{padding:11px 15px 3px;font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 15px;cursor:pointer;color:var(--text2);font-size:13px;border-left:2px solid transparent;transition:all .12s;user-select:none;white-space:nowrap}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-glow);font-weight:500}
+.nav-item i{width:17px;text-align:center;font-size:13px;flex-shrink:0}
+.authors-box{margin:8px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);padding:10px;flex-shrink:0}
+.authors-label{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.sidebar-footer{padding:8px;border-top:1px solid var(--border);flex-shrink:0}
+.theme-btn{width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:12px;transition:all .15s;white-space:nowrap;overflow:hidden}
+.theme-btn:hover{background:var(--bg3)}
+
+/* ── MOBILE TOPBAR ── */
+#mobile-topbar{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+#hamburger-btn{background:none;border:none;color:var(--text);font-size:18px;cursor:pointer;padding:4px 5px;border-radius:5px}
+#hamburger-btn:hover{background:var(--bg3)}
+#mobile-page-title{flex:1;font-size:15px;font-weight:600;color:var(--text);font-family:Georgia,serif}
+#mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:149}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.page-title{font-size:15px;font-weight:600;color:var(--text);font-family:Georgia,serif}
+.content{flex:1;overflow-y:auto;padding:20px}
+.tab{display:none}.tab.active{display:block}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text);transition:all .15s;white-space:nowrap;font-family:inherit}
+.btn:hover{background:var(--bg3)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.btn-primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{border-color:var(--red);color:var(--red)}
+.btn-danger:hover{background:rgba(184,48,48,.08)}
+
+/* ── CARDS / COMMON ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;color:var(--accent);font-family:Georgia,serif}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.progress-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-state i{font-size:28px;margin-bottom:10px;display:block}
+.empty-state p{font-size:13px;margin-bottom:12px}
+.loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text3);gap:10px;font-size:13px}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── CHAPTER CARDS ── */
+.chap-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;margin-bottom:6px;cursor:pointer;transition:border-color .12s}
+.chap-card:hover{border-color:var(--accent)}
+.chap-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.chap-num{font-size:11px;color:var(--text3);min-width:38px;flex-shrink:0}
+.chap-name{flex:1;font-size:13px;color:var(--text);font-weight:500}
+.chap-meta{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* ── IDEAS ── */
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.idea-card{border-radius:var(--radius);padding:12px;min-height:80px}
+.idea-tag{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;opacity:.7}
+.idea-body{font-size:13px;line-height:1.5}
+.idea-foot{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
+.idea-author{font-size:10px;opacity:.6}
+.idea-del{background:none;border:none;cursor:pointer;opacity:.4;color:inherit;padding:2px 4px;border-radius:3px;font-size:11px}
+.idea-del:hover{opacity:.9}
+.cat-plot{background:#f5eee8;color:#5a2010}
+.cat-character{background:#e8f0e8;color:#1a4020}
+.cat-world{background:#ede8f5;color:#3a1a5a}
+.cat-theme{background:#f0ece0;color:#4a3a00}
+.cat-misc{background:var(--bg3);color:var(--text2)}
+
+/* ── DOCUMENTS ── */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:22px;text-align:center;margin-bottom:14px;cursor:pointer;transition:all .15s}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:var(--accent-glow)}
+.doc-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;transition:border-color .12s}
+.doc-row:hover{border-color:var(--border2)}
+.doc-icon{font-size:20px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── DISCUSSION ── */
+.msg{display:flex;gap:10px;margin-bottom:10px}
+.msg-av{width:28px;height:28px;border-radius:50%;background:var(--accent-glow);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;margin-top:2px}
+.msg-bubble{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px}
+.msg-name{font-size:13px;font-weight:600;color:var(--text)}
+.msg-time{font-size:11px;color:var(--text3);margin-left:6px}
+.msg-text{font-size:13px;color:var(--text2);line-height:1.55;margin-top:4px;white-space:pre-wrap}
+.compose-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;display:flex;gap:8px;align-items:flex-end;margin-top:6px}
+.compose-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:var(--text);resize:none;min-height:38px;max-height:90px;outline:none;font-family:inherit}
+.compose-input:focus{border-color:var(--accent)}
+
+/* ── WIZARD CARDS ── */
+.wizard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.wiz-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .15s;position:relative}
+.wiz-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.wiz-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+.wiz-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;font-family:Georgia,serif}
+.wiz-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.wiz-badge{position:absolute;top:11px;right:11px;font-size:9px;padding:2px 7px;border-radius:10px}
+.wiz-done{background:rgba(42,128,80,.12);color:var(--green)}
+
+/* ── SAVED WIZARDS ── */
+.saved-wiz-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;margin-bottom:7px;cursor:pointer;transition:border-color .12s}
+.saved-wiz-card:hover{border-color:var(--accent)}
+
+/* ── CHARACTERS ── */
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.char-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.char-header{padding:13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.char-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.char-body{padding:11px 13px;display:flex;flex-direction:column;gap:5px}
+.char-row{display:flex;gap:6px;font-size:12px}
+.char-row-label{color:var(--text3);min-width:68px;flex-shrink:0}
+.char-row-val{color:var(--text2);flex:1}
+
+/* ── TIMELINE ── */
+.tl-part-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px}
+.tl-events{padding-left:12px;border-left:2px solid var(--border);display:flex;flex-direction:column;gap:5px;margin-bottom:22px}
+.tl-ev{position:relative;display:flex;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s}
+.tl-ev:hover{background:var(--bg3)}
+.tl-dot{position:absolute;left:-17px;top:12px;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg)}
+.tl-ch{font-size:11px;color:var(--text3);min-width:48px;flex-shrink:0}
+.tl-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.tl-desc{font-size:12px;color:var(--text2);line-height:1.45}
+
+/* ── TASKS ── */
+.task-col-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.task-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:border-color .12s;margin-bottom:6px}
+.task-item:hover{border-color:var(--border2)}
+
+/* ── MILESTONES ── */
+.ms-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 15px;cursor:pointer;transition:border-color .12s;margin-bottom:7px;border-left-width:3px}
+.ms-item:hover{border-right-color:var(--border2);border-top-color:var(--border2);border-bottom-color:var(--border2)}
+
+/* ── SESSIONS ── */
+.sess-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;cursor:pointer;transition:border-color .12s;margin-bottom:6px}
+.sess-item:hover{border-color:var(--border2)}
+.heatmap{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:14px}
+.heat-cell{width:19px;height:19px;border-radius:3px;border:1px solid var(--border)}
+
+/* ── MODALS ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:22px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px;font-family:Georgia,serif}
+.form-group{margin-bottom:12px}
+.form-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit;transition:border-color .12s}
+.form-input:focus{border-color:var(--accent);background:var(--bg2)}
+.form-input::placeholder{color:var(--text3)}
+textarea.form-input{resize:vertical;min-height:68px}
+select.form-input option{background:var(--bg2)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── WIZARD MODAL ── */
+.wiz-modal{width:580px}
+.wiz-prog{display:flex;gap:4px;margin-bottom:18px}
+.wiz-dot{flex:1;height:3px;border-radius:2px;background:var(--bg3);transition:background .2s}
+.wiz-dot.done{background:var(--accent)}
+.wiz-q{font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;line-height:1.4}
+.wiz-hint{font-size:12px;color:var(--text2);margin-bottom:11px;line-height:1.55;padding:8px 10px;background:var(--accent-glow);border-radius:var(--radius-sm);border-left:3px solid var(--accent)}
+
+/* ── CHAPTER EDITOR ── */
+#editor-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:500;flex-direction:column}
+#editor-overlay.open{display:flex}
+.editor-bar{padding:9px 14px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:7px;flex-shrink:0;flex-wrap:wrap}
+#editor-body{flex:1;background:var(--bg);color:var(--text);border:none;outline:none;padding:40px max(24px,calc(50% - 360px));font-size:16px;line-height:1.9;font-family:Georgia,serif;resize:none;overflow-y:auto}
+.editor-panel{width:320px;border-left:1px solid var(--border);background:var(--bg2);display:none;flex-direction:column;overflow:hidden;flex-shrink:0}
+.ep-header{padding:10px 13px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ep-body{flex:1;overflow-y:auto;padding:11px}
+
+/* ── DOC VIEWER ── */
+#viewer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;flex-direction:column}
+#viewer-overlay.open{display:flex}
+.viewer-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 15px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.viewer-body{flex:1;overflow:auto;padding:18px;background:var(--bg)}
+.viewer-content{max-width:760px;margin:0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:26px;line-height:1.7;color:var(--text)}
+
+/* ── READ MODE ── */
+#read-overlay{display:none;position:fixed;inset:0;background:#faf5ec;z-index:500;flex-direction:column}
+#read-overlay.open{display:flex}
+#read-body{flex:1;overflow-y:auto;padding:60px 20px}
+#read-content{max-width:640px;margin:0 auto;color:#2a1a0a;line-height:1.95;font-size:17px;font-family:Georgia,serif}
+
+/* ── SEARCH ── */
+#search-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:flex-start;justify-content:center;padding-top:80px}
+#search-overlay.open{display:flex}
+
+/* ── THEME PANEL ── */
+#theme-panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;align-items:center;justify-content:center}
+#theme-panel.open{display:flex}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:13px;color:var(--text);z-index:999;transform:translateY(60px);opacity:0;transition:all .25s;max-width:280px;box-shadow:var(--shadow)}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  #mobile-topbar{display:flex}
+  #desktop-topbar{display:none}
+  .sidebar{position:fixed;top:0;left:-270px;width:260px!important;min-width:260px!important;height:100%;z-index:150;transition:left .25s ease;box-shadow:none}
+  .sidebar.mobile-open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+  #mobile-overlay.active{display:block}
+  .collapse-btn{display:none}
+  .sidebar.collapsed{width:260px!important;min-width:260px!important}
+  .sidebar.collapsed .nav-label,.sidebar.collapsed .nav-section,.sidebar.collapsed .authors-box,.sidebar.collapsed .sidebar-footer-text{display:block!important}
+  .sidebar.collapsed .nav-item{justify-content:flex-start!important;padding:8px 15px!important}
+  .app.open{flex-direction:column}
+  .main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+  .content{padding:12px;flex:1;overflow-y:auto}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .modal{width:100%!important;max-width:100%!important;max-height:88vh;border-radius:20px 20px 0 0!important;margin:0}
+  .modal-bg{align-items:flex-end;padding:0}
+  .wiz-modal{border-radius:20px 20px 0 0!important}
+  .two-col{grid-template-columns:1fr}
+  #editor-body{padding:16px;font-size:15px}
+  .editor-panel{width:100%!important;position:absolute;bottom:0;left:0;right:0;height:50vh;border-left:none!important;border-top:1px solid var(--border);z-index:20}
+  .ideas-grid{grid-template-columns:1fr 1fr}
+  .char-grid{grid-template-columns:1fr}
+  .wizard-grid{grid-template-columns:1fr}
+  .toast{bottom:14px;right:10px;left:10px;max-width:none;text-align:center}
+  #search-overlay{padding-top:0;align-items:flex-end}
+  #search-overlay>div{border-radius:20px 20px 0 0;width:100%}
+  #read-body{padding:30px 14px}
+}
+@media(max-width:480px){
+  .ideas-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════
+     BOOKSHELF
+════════════════════════════ -->
+<div id="bookshelf">
+  <div class="shelf-header">
+    <div class="brand">
+      <div class="brand-icon"><i class="fas fa-feather-alt"></i></div>
+      <div>
+        <div class="brand-name">Writer's Roost</div>
+        <div class="brand-tagline">Your creative workspace</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="shelf-user" style="font-size:13px;color:var(--text2)"></span>
+      <button class="btn btn-sm" onclick="openThemePanel()"><i class="fas fa-palette" style="color:var(--accent)"></i></button>
+    </div>
+  </div>
+  <div class="shelf-body">
+    <div class="shelf-greeting">
+      <h2>Your Books</h2>
+      <p>Select a book to open it, or start something new.</p>
+    </div>
+    <div class="books-grid" id="books-grid">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     APP SHELL
+════════════════════════════ -->
+<div class="app" id="app">
+  <div id="mobile-topbar">
+    <button id="hamburger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+    <span id="mobile-title">Dashboard</span>
+    <button class="btn btn-primary btn-sm" onclick="topbarAction()" style="padding:5px 10px"><i class="fas fa-plus"></i></button>
+  </div>
+  <div id="mobile-overlay" onclick="closeMobileMenu()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div style="display:flex;align-items:center;gap:7px">
+        <div id="book-dot" style="width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div class="sidebar-book-name nav-label" id="sidebar-book-name" onclick="goToShelf()" title="Back to My Books">← My Books</div>
+          <div class="sidebar-book-genre nav-label" id="sidebar-book-genre"></div>
+        </div>
+        <button class="collapse-btn" onclick="toggleSidebar()" id="collapse-btn"><i class="fas fa-chevron-left" id="collapse-icon"></i></button>
+      </div>
+    </div>
+
+    <div class="nav" id="main-nav">
+      <div class="nav-section">Workspace</div>
+      <div class="nav-item active" onclick="showTab('dashboard',this)"><i class="fas fa-home"></i><span class="nav-label">Dashboard</span></div>
+      <div class="nav-item" onclick="showTab('chapters',this)"><i class="fas fa-list-ol"></i><span class="nav-label">Chapters</span></div>
+      <div class="nav-item" onclick="showTab('ideas',this)"><i class="fas fa-lightbulb"></i><span class="nav-label">Idea Board</span></div>
+      <div class="nav-item" onclick="showTab('docs',this)"><i class="fas fa-folder-open"></i><span class="nav-label">Documents</span></div>
+      <div class="nav-item" onclick="showTab('discuss',this)"><i class="fas fa-comments"></i><span class="nav-label">Discussion</span></div>
+      <div class="nav-section">Story Tools</div>
+      <div class="nav-item" onclick="showTab('wizards',this)"><i class="fas fa-magic"></i><span class="nav-label">Doc Builder</span></div>
+      <div class="nav-item" onclick="showTab('characters',this)"><i class="fas fa-users"></i><span class="nav-label">Characters</span></div>
+      <div class="nav-item" onclick="showTab('timeline',this)"><i class="fas fa-stream"></i><span class="nav-label">Timeline</span></div>
+      <div class="nav-section">Writing</div>
+      <div class="nav-item" onclick="showTab('tasks',this)"><i class="fas fa-tasks"></i><span class="nav-label">Tasks</span></div>
+      <div class="nav-item" onclick="showTab('milestones',this)"><i class="fas fa-flag"></i><span class="nav-label">Milestones</span></div>
+      <div class="nav-section">Tools</div>
+      <div class="nav-item" onclick="openSearch()"><i class="fas fa-search"></i><span class="nav-label">Search</span></div>
+      <div class="nav-item" onclick="showTab('sessions',this)"><i class="fas fa-pen-nib"></i><span class="nav-label">Sessions</span></div>
+      <div class="nav-item" onclick="openReadMode()"><i class="fas fa-book-reader"></i><span class="nav-label">Read Mode</span></div>
+      <div class="nav-item" onclick="openExportModal()"><i class="fas fa-file-export"></i><span class="nav-label">Export</span></div>
+    </div>
+
+    <div class="authors-box">
+      <div class="authors-label">Writing as</div>
+      <div id="authors-list"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button onclick="openThemePanel()" class="theme-btn">
+        <i class="fas fa-palette" style="color:var(--accent)"></i>
+        <span class="nav-label sidebar-footer-text">Theme</span>
+        <span id="theme-badge" class="nav-label" style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:var(--accent-glow);color:var(--accent)">Light</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar" id="desktop-topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="topbarAction()" id="topbar-btn"><i class="fas fa-plus"></i><span id="topbar-label">New Chapter</span></button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="tab-dashboard" class="tab active">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-val" id="s-chapters">—</div><div class="stat-lbl">Chapters</div></div>
+          <div class="stat-card"><div class="stat-val" id="s-words">—</div><div class="stat-lbl">Words</div></div>
+          <div class="stat-card"><div class="stat-val" id="s-ideas">—</div><div class="stat-lbl">Ideas</div></div>
+          <div class="stat-card"><div class="stat-val" id="s-docs">—</div><div class="stat-lbl">Documents</div></div>
+        </div>
+        <div class="section-label">Word Count Goal</div>
+        <div class="card" style="margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:7px"><span>Progress</span><span id="wc-label" style="font-weight:600;color:var(--text)">0 / 80,000</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="wc-bar" style="width:0%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:5px" id="wc-pct">0% complete</div>
+        </div>
+        <div class="section-label">Recent Activity</div>
+        <div class="card" id="activity-feed"><div class="loading"><div class="spinner"></div> Loading…</div></div>
+      </div>
+
+      <!-- CHAPTERS -->
+      <div id="tab-chapters" class="tab">
+        <div id="chapters-list"><div class="loading"><div class="spinner"></div> Loading…</div></div>
+      </div>
+
+      <!-- IDEAS -->
+      <div id="tab-ideas" class="tab">
+        <div class="ideas-grid" id="ideas-grid"></div>
+        <div id="ideas-empty" class="empty-state" style="display:none"><i class="fas fa-lightbulb"></i><p>No ideas yet</p><button class="btn btn-primary" onclick="openModal('modal-idea')"><i class="fas fa-plus"></i> First Idea</button></div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div id="tab-docs" class="tab">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" style="display:none" multiple accept=".pdf,.docx,.doc,.txt,.md" onchange="handleFileSelect(event)"/>
+          <i class="fas fa-cloud-upload-alt" style="font-size:22px;color:var(--accent);display:block;margin-bottom:7px"></i>
+          <p style="font-size:13px;color:var(--text2)">Click to upload or drag & drop</p>
+          <small style="color:var(--text3);font-size:11px">PDF, DOCX, TXT, MD</small>
+        </div>
+        <div id="docs-list"></div>
+      </div>
+
+      <!-- DISCUSSION -->
+      <div id="tab-discuss" class="tab">
+        <div id="discuss-list" style="margin-bottom:12px;max-height:calc(100vh - 260px);overflow-y:auto"></div>
+        <div class="compose-box">
+          <div id="compose-av" style="width:28px;height:28px;border-radius:50%;background:var(--accent-glow);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">?</div>
+          <textarea class="compose-input" id="compose-input" placeholder="Add to the discussion…" rows="1" onkeydown="handleCompose(event)" oninput="autoResize(this)"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+
+      <!-- DOC BUILDER -->
+      <div id="tab-wizards" class="tab">
+        <div style="margin-bottom:16px">
+          <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px;font-family:Georgia,serif">Document Builder</div>
+          <div style="font-size:13px;color:var(--text2)">Guided wizards to build your essential novel documents. Each one saves to your book and can be opened and revised anytime.</div>
+        </div>
+        <div class="wizard-grid" id="wizard-grid"></div>
+        <div id="saved-wizards-section" style="display:none">
+          <div class="section-label" style="margin-bottom:10px">Saved Documents</div>
+          <div id="saved-wizards-list"></div>
+        </div>
+      </div>
+
+      <!-- CHARACTERS -->
+      <div id="tab-characters" class="tab">
+        <div class="char-grid" id="char-grid"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div id="tab-timeline" class="tab">
+        <div id="timeline-wrap"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- TASKS -->
+      <div id="tab-tasks" class="tab">
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px">
+            <div class="task-col-head"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span> To Do</div>
+            <div id="col-todo"></div>
+          </div>
+          <div style="flex:1;min-width:180px">
+            <div class="task-col-head"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block"></span> In Progress</div>
+            <div id="col-progress"></div>
+          </div>
+          <div style="flex:1;min-width:180px">
+            <div class="task-col-head"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span> Done</div>
+            <div id="col-done"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MILESTONES -->
+      <div id="tab-milestones" class="tab">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+          <div class="stat-card"><div class="stat-val" id="ms-total">—</div><div class="stat-lbl">Total</div></div>
+          <div class="stat-card"><div class="stat-val" id="ms-done" style="color:var(--green)">—</div><div class="stat-lbl">Done</div></div>
+          <div class="stat-card"><div class="stat-val" id="ms-next" style="font-size:13px;color:var(--amber)">—</div><div class="stat-lbl">Next Due</div></div>
+        </div>
+        <div id="milestones-list"></div>
+      </div>
+
+      <!-- SESSIONS -->
+      <div id="tab-sessions" class="tab">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+          <div class="stat-card"><div class="stat-val" id="ss-total">—</div><div class="stat-lbl">Sessions</div></div>
+          <div class="stat-card"><div class="stat-val" id="ss-words" style="color:var(--green)">—</div><div class="stat-lbl">Words</div></div>
+          <div class="stat-card"><div class="stat-val" id="ss-hours" style="color:var(--amber)">—</div><div class="stat-lbl">Hours</div></div>
+          <div class="stat-card"><div class="stat-val" id="ss-streak" style="color:var(--accent)">—</div><div class="stat-lbl">Streak</div></div>
+        </div>
+        <div id="heatmap-wrap" style="margin-bottom:14px"></div>
+        <div id="sessions-list"></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ════ CHAPTER EDITOR ════ -->
+<div id="editor-overlay">
+  <div class="editor-bar">
+    <button class="btn btn-sm" onclick="closeEditor()"><i class="fas fa-arrow-left"></i></button>
+    <span id="ed-chapnum" style="font-size:12px;color:var(--text3)"></span>
+    <input id="ed-title" style="flex:1;background:transparent;border:none;font-size:14px;font-weight:600;color:var(--text);outline:none;min-width:60px;font-family:Georgia,serif" placeholder="Chapter title…"/>
+    <select id="ed-status" class="form-input" style="width:auto;padding:4px 9px;font-size:12px">
+      <option value="outline">Outline</option><option value="draft">Draft</option><option value="review">In Review</option><option value="done">Done</option>
+    </select>
+    <span id="ed-wc" style="font-size:12px;color:var(--text3);white-space:nowrap">0 words</span>
+    <button class="btn btn-primary btn-sm" onclick="saveEditor()"><i class="fas fa-save"></i></button>
+    <button class="btn btn-sm btn-danger" onclick="deleteChapter()" style="padding:5px 8px"><i class="fas fa-trash"></i></button>
+    <div style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
+    <button class="btn btn-sm" id="btn-brief" onclick="togglePanel('brief')" title="Brief"><i class="fas fa-book-open"></i></button>
+    <button class="btn btn-sm" id="btn-notes" onclick="togglePanel('notes')" title="Notes"><i class="fas fa-comment-alt"></i></button>
+    <button class="btn btn-sm" id="btn-history" onclick="togglePanel('history')" title="History"><i class="fas fa-history"></i></button>
+    <button class="btn btn-sm" id="btn-read" onclick="editorReadAloud()" title="Read aloud"><i class="fas fa-volume-up"></i></button>
+  </div>
+  <div style="flex:1;display:flex;overflow:hidden;position:relative">
+    <textarea id="editor-body" placeholder="Begin writing…" oninput="edWC()"></textarea>
+    <div class="editor-panel" id="panel-brief">
+      <div class="ep-header">Chapter Brief</div>
+      <div class="ep-body"><div id="brief-content" style="font-size:13px;color:var(--text2);line-height:1.65;white-space:pre-wrap"></div></div>
+    </div>
+    <div class="editor-panel" id="panel-notes">
+      <div class="ep-header">Co-Author Notes
+        <button class="btn btn-sm btn-primary" onclick="openAddNote()" style="font-size:10px;padding:3px 7px"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="ep-body" id="notes-list"></div>
+    </div>
+    <div class="editor-panel" id="panel-history">
+      <div class="ep-header">Version History
+        <button class="btn btn-sm btn-primary" onclick="saveVersion()" style="font-size:10px;padding:3px 7px"><i class="fas fa-bookmark"></i></button>
+      </div>
+      <div class="ep-body" id="history-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DOC VIEWER ════ -->
+<div id="viewer-overlay">
+  <div class="viewer-bar">
+    <button class="btn btn-sm" onclick="closeViewer()"><i class="fas fa-arrow-left"></i> Back</button>
+    <div style="flex:1;font-size:14px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="viewer-title"></div>
+    <a class="btn btn-sm" id="viewer-dl" href="#" download><i class="fas fa-download"></i></a>
+  </div>
+  <div class="viewer-body" id="viewer-body"></div>
+  <div id="pdf-nav" style="display:none;padding:9px;background:var(--bg2);border-top:1px solid var(--border);align-items:center;gap:10px;justify-content:center">
+    <button class="btn btn-sm" onclick="pdfPrev()"><i class="fas fa-chevron-left"></i></button>
+    <span id="pdf-info" style="font-size:13px;color:var(--text2)">Page 1 of 1</span>
+    <button class="btn btn-sm" onclick="pdfNext()"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+<!-- ════ READ MODE ════ -->
+<div id="read-overlay">
+  <div style="background:#faf5ec;border-bottom:1px solid rgba(0,0,0,.07);padding:9px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-sm" onclick="closeReadMode()" style="background:#f0ebe3;border-color:rgba(0,0,0,.1);color:#5a4a38"><i class="fas fa-arrow-left"></i></button>
+    <span id="read-title" style="flex:1;font-size:13px;color:#7a6050;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <select id="read-size" onchange="updateReadSize()" style="background:#f0ebe3;border:1px solid rgba(0,0,0,.1);color:#5a4a38;font-size:11px;padding:3px 6px;border-radius:4px">
+      <option value="15">Small</option><option value="17" selected>Medium</option><option value="20">Large</option>
+    </select>
+    <span id="read-pct" style="font-size:11px;color:#9a8878"></span>
+  </div>
+  <div id="read-body" onscroll="updateReadPct()"><div id="read-content"></div></div>
+  <div style="background:#faf5ec;border-top:1px solid rgba(0,0,0,.07);padding:9px;display:flex;align-items:center;justify-content:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-sm" onclick="readPrev()" style="background:#f0ebe3;border-color:rgba(0,0,0,.1);color:#5a4a38"><i class="fas fa-chevron-left"></i></button>
+    <span id="read-indicator" style="font-size:12px;color:#9a8878"></span>
+    <button class="btn btn-sm" onclick="readNext()" style="background:#f0ebe3;border-color:rgba(0,0,0,.1);color:#5a4a38"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+<!-- ════ SEARCH ════ -->
+<div id="search-overlay">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:560px;max-width:95vw;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.2)">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--border)">
+      <i class="fas fa-search" style="color:var(--text3)"></i>
+      <input id="search-input" style="flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--text)" placeholder="Search chapters, ideas, discussion…" oninput="runSearch()" onkeydown="if(event.key==='Escape')closeSearch()"/>
+      <button class="btn btn-sm" onclick="closeSearch()">Esc</button>
+    </div>
+    <div id="search-results" style="max-height:360px;overflow-y:auto;padding:5px"></div>
+  </div>
+</div>
+
+<!-- ════ THEME PANEL ════ -->
+<div id="theme-panel" onclick="if(event.target===this)closeThemePanel()">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:22px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.15)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:15px;font-weight:600;color:var(--text);font-family:Georgia,serif"><i class="fas fa-palette" style="margin-right:8px;color:var(--accent)"></i>Theme & Appearance</div>
+      <button onclick="closeThemePanel()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:2px 6px"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Mode</div>
+      <div style="display:flex;gap:8px">
+        <button id="mode-light" onclick="setMode('light')" class="btn" style="flex:1;justify-content:center"><i class="fas fa-sun" style="color:var(--amber)"></i> Light</button>
+        <button id="mode-dark" onclick="setMode('dark')" class="btn" style="flex:1;justify-content:center"><i class="fas fa-moon" style="color:var(--blue)"></i> Dark</button>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Color Palette</div>
+      <div id="palette-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Custom Accent</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="color" id="custom-accent" value="#8B3A3A" style="width:38px;height:32px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;background:none"/>
+        <button onclick="applyCustomAccent()" class="btn btn-sm btn-primary">Apply</button>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Font Size</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="setFontSize('13')" class="btn btn-sm t-sz" data-sz="13" style="flex:1;justify-content:center">Small</button>
+        <button onclick="setFontSize('14')" class="btn btn-sm t-sz" data-sz="14" style="flex:1;justify-content:center">Medium</button>
+        <button onclick="setFontSize('15')" class="btn btn-sm t-sz" data-sz="15" style="flex:1;justify-content:center">Large</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODALS ════ -->
+
+<!-- NEW / EDIT BOOK -->
+<div class="modal-bg" id="modal-book">
+  <div class="modal" style="width:480px">
+    <div class="modal-title" id="modal-book-title">Create New Book</div>
+    <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="bk-title" placeholder="My Novel"/></div>
+    <div class="form-group"><label class="form-label">Subtitle</label><input class="form-input" id="bk-subtitle" placeholder="Optional subtitle…"/></div>
+    <div class="form-group"><label class="form-label">Genre</label>
+      <select class="form-input" id="bk-genre">
+        <option value="">— Select genre —</option>
+        <option>Literary Fiction</option><option>Commercial Fiction</option><option>Mystery / Thriller</option>
+        <option>Romance</option><option>Fantasy</option><option>Science Fiction</option>
+        <option>Historical Fiction</option><option>Horror</option><option>Young Adult</option>
+        <option>Middle Grade</option><option>Memoir / Creative Nonfiction</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="bk-desc" placeholder="A brief description of your book…"></textarea></div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Word Count Goal</label><input class="form-input" type="number" id="bk-wc" value="80000"/></div>
+      <div class="form-group"><label class="form-label">Cover Color</label><input class="form-input" type="color" id="bk-color" value="#8B3A3A"/></div>
+    </div>
+    <input type="hidden" id="bk-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-book')">Cancel</button>
+      <button class="btn btn-danger" id="bk-delete" onclick="deleteBook()" style="display:none">Delete Book</button>
+      <button class="btn btn-primary" id="bk-save" onclick="saveBook()">Create Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW / EDIT CHAPTER -->
+<div class="modal-bg" id="modal-chapter">
+  <div class="modal">
+    <div class="modal-title" id="modal-chap-title">Add Chapter</div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Number</label><input class="form-input" id="ch-num" type="number" min="1"/></div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-input" id="ch-status"><option value="outline">Outline</option><option value="draft">Draft</option><option value="review">In Review</option><option value="done">Done</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="ch-title" placeholder="Chapter title…"/></div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">POV Character</label><input class="form-input" id="ch-pov" placeholder="e.g. Elena"/></div>
+      <div class="form-group"><label class="form-label">Part / Act</label><input class="form-input" id="ch-part" placeholder="e.g. Part One"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Brief / Notes</label><textarea class="form-input" id="ch-notes" placeholder="What happens in this chapter?"></textarea></div>
+    <input type="hidden" id="ch-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-chapter')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveChapter()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDEA -->
+<div class="modal-bg" id="modal-idea">
+  <div class="modal">
+    <div class="modal-title">Add Idea</div>
+    <div class="form-group"><label class="form-label">Category</label>
+      <select class="form-input" id="idea-cat">
+        <option value="plot">Plot</option><option value="character">Character</option>
+        <option value="world">World-building</option><option value="theme">Theme</option><option value="misc">Misc</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Idea</label><textarea class="form-input" id="idea-text" placeholder="Describe your idea…" style="min-height:80px"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-idea')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIdea()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHARACTER -->
+<div class="modal-bg" id="modal-char">
+  <div class="modal" style="width:500px">
+    <div class="modal-title" id="modal-char-title">Add Character</div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="c-name" placeholder="Character name"/></div>
+      <div class="form-group"><label class="form-label">Role</label><input class="form-input" id="c-role" placeholder="Protagonist, Antagonist…"/></div>
+    </div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Color</label><input class="form-input" type="color" id="c-color" value="#8B3A3A"/></div>
+      <div class="form-group"><label class="form-label">Emoji / Initial</label><input class="form-input" id="c-emoji" placeholder="E"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Core Trait</label><input class="form-input" id="c-trait" placeholder="Their defining quality"/></div>
+    <div class="form-group"><label class="form-label">Flaw</label><input class="form-input" id="c-flaw" placeholder="What holds them back"/></div>
+    <div class="form-group"><label class="form-label">Arc</label><input class="form-input" id="c-arc" placeholder="How they change across the story"/></div>
+    <div class="form-group"><label class="form-label">Backstory</label><textarea class="form-input" id="c-backstory" placeholder="Formative experiences…"></textarea></div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="c-notes" placeholder="Anything else…"></textarea></div>
+    <input type="hidden" id="c-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-char')">Cancel</button>
+      <button class="btn btn-danger" id="c-delete" onclick="deleteChar()" style="display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveChar()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE EVENT -->
+<div class="modal-bg" id="modal-event">
+  <div class="modal">
+    <div class="modal-title" id="modal-ev-title">Add Event</div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Chapter / Label</label><input class="form-input" id="ev-ch" placeholder="e.g. Ch. 4"/></div>
+      <div class="form-group"><label class="form-label">Part</label>
+        <select class="form-input" id="ev-part">
+          <option value="pre">Pre-Story</option><option value="1">Part One</option><option value="2">Part Two</option>
+          <option value="3">Part Three</option><option value="4">Part Four</option><option value="5">Part Five</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="ev-title" placeholder="Event title"/></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="ev-desc" placeholder="What happens…"></textarea></div>
+    <div class="form-group"><label class="form-label">Tags (comma separated)</label><input class="form-input" id="ev-tags" placeholder="protagonist, turning-point"/></div>
+    <div class="form-group"><label class="form-label">Sort Order</label><input class="form-input" id="ev-order" type="number" value="999"/></div>
+    <input type="hidden" id="ev-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-event')">Cancel</button>
+      <button class="btn btn-danger" id="ev-delete" onclick="deleteEvent()" style="display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK -->
+<div class="modal-bg" id="modal-task">
+  <div class="modal">
+    <div class="modal-title" id="modal-task-title">Add Task</div>
+    <div class="form-group"><label class="form-label">Task *</label><input class="form-input" id="t-title" placeholder="What needs to be done?"/></div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-input" id="t-status"><option value="todo">To Do</option><option value="progress">In Progress</option><option value="done">Done</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Chapter</label><select class="form-input" id="t-chapter"><option value="">— None —</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="t-notes" placeholder="Optional details…"></textarea></div>
+    <input type="hidden" id="t-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn btn-danger" id="t-delete" onclick="deleteTask()" style="display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MILESTONE -->
+<div class="modal-bg" id="modal-ms">
+  <div class="modal">
+    <div class="modal-title">Milestone</div>
+    <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="ms-title" placeholder="e.g. First draft of Part One complete"/></div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Target Date</label><input class="form-input" type="date" id="ms-date"/></div>
+      <div class="form-group"><label class="form-label">Word Goal</label><input class="form-input" type="number" id="ms-wc" placeholder="Optional"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Status</label>
+      <select class="form-input" id="ms-status"><option value="upcoming">Upcoming</option><option value="inprogress">In Progress</option><option value="complete">Complete</option><option value="missed">Missed</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="ms-notes" placeholder="What does hitting this milestone mean?"></textarea></div>
+    <input type="hidden" id="ms-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-ms')">Cancel</button>
+      <button class="btn btn-danger" id="ms-delete" onclick="deleteMs()" style="display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveMs()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION -->
+<div class="modal-bg" id="modal-sess">
+  <div class="modal">
+    <div class="modal-title">Writing Session</div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="ss-date"/></div>
+      <div class="form-group"><label class="form-label">Duration (min)</label><input class="form-input" type="number" id="ss-dur" placeholder="45"/></div>
+    </div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Words Written</label><input class="form-input" type="number" id="ss-words" placeholder="800"/></div>
+      <div class="form-group"><label class="form-label">Chapter</label><select class="form-input" id="ss-ch"><option value="">— General —</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="ss-notes" placeholder="How did it go?"></textarea></div>
+    <input type="hidden" id="ss-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-sess')">Cancel</button>
+      <button class="btn btn-danger" id="ss-delete" onclick="deleteSess()" style="display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveSess()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE -->
+<div class="modal-bg" id="modal-note">
+  <div class="modal">
+    <div class="modal-title">Add Note</div>
+    <div class="form-group"><label class="form-label">Passage (optional)</label><textarea class="form-input" id="note-passage" placeholder="Paste the text you're commenting on…" style="min-height:48px"></textarea></div>
+    <div class="form-group"><label class="form-label">Note *</label><textarea class="form-input" id="note-text" placeholder="Your comment or suggestion…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-note')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div class="modal-bg" id="modal-export">
+  <div class="modal" style="width:480px">
+    <div class="modal-title">Export Manuscript</div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="ex-title"/></div>
+      <div class="form-group"><label class="form-label">Author(s)</label><input class="form-input" id="ex-author"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Chapters</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button class="btn btn-sm" onclick="exAll()" style="font-size:11px">All</button>
+        <button class="btn btn-sm" onclick="exNone()" style="font-size:11px">None</button>
+        <button class="btn btn-sm" onclick="exWritten()" style="font-size:11px">Written Only</button>
+      </div>
+      <div id="ex-chapters" style="max-height:150px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;display:flex;flex-direction:column;gap:3px"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Format</label>
+      <select class="form-input" id="ex-format">
+        <option value="txt">Plain Text (.txt)</option>
+        <option value="md">Markdown (.md)</option>
+        <option value="html">Formatted HTML</option>
+        <option value="pdf">PDF (browser print)</option>
+        <option value="rtf">Word / RTF (.rtf)</option>
+      </select>
+    </div>
+    <div id="ex-summary" style="padding:7px 10px;background:var(--bg3);border-radius:var(--radius-sm);font-size:12px;color:var(--text2)">Select chapters</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-export')">Cancel</button>
+      <button class="btn btn-primary" onclick="runExport()"><i class="fas fa-download"></i> Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD MODAL -->
+<div class="modal-bg" id="modal-wizard">
+  <div class="modal wiz-modal">
+    <div id="wiz-header" style="margin-bottom:6px">
+      <div style="font-size:15px;font-weight:600;color:var(--text);font-family:Georgia,serif" id="wiz-title">Wizard</div>
+    </div>
+    <div class="wiz-prog" id="wiz-prog"></div>
+    <div id="wiz-body"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+      <button class="btn btn-sm" id="wiz-back" onclick="wizBack()" style="visibility:hidden"><i class="fas fa-chevron-left"></i> Back</button>
+      <span id="wiz-indicator" style="font-size:12px;color:var(--text3)"></span>
+      <button class="btn btn-primary btn-sm" id="wiz-next" onclick="wizNext()">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ════════════════════════════════
+// CONFIG — replace with your keys
+// ════════════════════════════════
+const SB_URL = 'https://gyjuqztntshlrniryzjw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5anVxenRudHNobHJuaXJ5emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2OTcwMDIsImV4cCI6MjA5ODI3MzAwMn0.wqJ7LwDGGZXd7XKh45Tp0XRG77O40u_kuVtd9LOAtuU';
+const BUCKET = 'book-docs';
+const H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+async function sb(path, opts={}) {
+  try {
+    const r = await fetch(SB_URL+'/rest/v1/'+path, {headers:H,...opts});
+    if(r.status===204) return [];
+    if(!r.ok){console.error('SB error',r.status,await r.text());return null;}
+    const t = await r.text();
+    return t ? JSON.parse(t) : [];
+  } catch(e){console.error('SB fetch:',e);return null;}
+}
+async function sbUpload(path, file) {
+  const r = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+    method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'application/octet-stream','x-upsert':'true'},body:file
+  });
+  return r.ok;
+}
+const sbUrl = p => `${SB_URL}/storage/v1/object/public/${BUCKET}/${p}`;
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let displayName='Author', bookId=null, currentBook=null;
+let books=[], chapters=[], ideas=[], documents=[], discussion=[];
+let characters=[], events=[], tasks=[], milestones=[], sessions=[], activity=[];
+let currentTab='dashboard', editorChapId=null;
+let pdfDoc=null, pdfPage=1, readChaps=[], readIdx=0;
+let wizardDef=null, wizardStep=0, wizardAnswers={};
+
+// ════════════════════════════════
+// BOOT
+// ════════════════════════════════
+function boot(){
+  loadThemePrefs();
+  loadSidebarState();
+  initName();
+  loadBooks();
+}
+
+// ════════════════════════════════
+// DISPLAY NAME
+// ════════════════════════════════
+function initName(){
+  const s = localStorage.getItem('wr_name');
+  if(s) displayName=s;
+  else setTimeout(promptName,700);
+  renderName();
+}
+function renderName(){
+  const el=document.getElementById('authors-list');
+  const sh=document.getElementById('shelf-user');
+  const av=document.getElementById('compose-av');
+  if(sh) sh.textContent=displayName;
+  if(av){av.textContent=displayName.slice(0,2).toUpperCase();}
+  if(!el) return;
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:7px">
+    <div style="width:26px;height:26px;border-radius:50%;background:var(--accent-glow);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${displayName.slice(0,2).toUpperCase()}</div>
+    <input value="${esc(displayName)}" style="flex:1;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;cursor:pointer;min-width:0"
+      onblur="saveName(this.value)" onkeydown="if(event.key==='Enter')this.blur()" title="Click to change name"/>
+  </div>
+  <div style="font-size:10px;color:var(--text3);margin-top:3px">Tap to edit</div>`;
+}
+function saveName(n){if(!n.trim())return;displayName=n.trim();localStorage.setItem('wr_name',displayName);renderName();toast('Name saved');}
+function promptName(){const n=prompt("What's your name?","Author");if(n&&n.trim()){displayName=n.trim();localStorage.setItem('wr_name',displayName);renderName();}}
+
+// ════════════════════════════════
+// BOOKS
+// ════════════════════════════════
+async function loadBooks(){
+  const d=await sb('books?order=updated_at.desc');
+  if(d) books=d;
+  renderShelf();
+}
+function renderShelf(){
+  const g=document.getElementById('books-grid');
+  const cards=books.map(b=>`<div class="book-card" onclick="openBook('${b.id}')">
+    <div class="book-spine" style="background:${b.cover_color||'#8B3A3A'}"></div>
+    <div class="book-body">
+      <div class="book-title">${esc(b.title)}</div>
+      <div class="book-genre">${esc(b.genre||'')}</div>
+      <div class="book-pills">
+        <span class="book-pill">${esc(b.status||'drafting')}</span>
+        <span class="book-pill">${((b.word_count_goal||80000)/1000).toFixed(0)}k goal</span>
+      </div>
+    </div>
+  </div>`);
+  cards.push(`<div class="book-card book-new" onclick="openNewBook()"><i class="fas fa-plus"></i><span>New Book</span></div>`);
+  g.innerHTML=cards.join('');
+}
+function openNewBook(){
+  document.getElementById('modal-book-title').textContent='Create New Book';
+  document.getElementById('bk-save').textContent='Create Book';
+  ['bk-title','bk-subtitle','bk-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('bk-genre').value='';
+  document.getElementById('bk-wc').value='80000';
+  document.getElementById('bk-color').value='#8B3A3A';
+  document.getElementById('bk-id').value='';
+  document.getElementById('bk-delete').style.display='none';
+  openModal('modal-book');
+}
+function openEditBook(){
+  if(!currentBook) return;
+  document.getElementById('modal-book-title').textContent='Edit Book';
+  document.getElementById('bk-save').textContent='Save Changes';
+  document.getElementById('bk-title').value=currentBook.title||'';
+  document.getElementById('bk-subtitle').value=currentBook.subtitle||'';
+  document.getElementById('bk-desc').value=currentBook.description||'';
+  document.getElementById('bk-genre').value=currentBook.genre||'';
+  document.getElementById('bk-wc').value=currentBook.word_count_goal||80000;
+  document.getElementById('bk-color').value=currentBook.cover_color||'#8B3A3A';
+  document.getElementById('bk-id').value=currentBook.id;
+  document.getElementById('bk-delete').style.display='inline-flex';
+  openModal('modal-book');
+}
+async function saveBook(){
+  const p={title:document.getElementById('bk-title').value.trim()||'Untitled',subtitle:document.getElementById('bk-subtitle').value.trim(),genre:document.getElementById('bk-genre').value,description:document.getElementById('bk-desc').value.trim(),word_count_goal:parseInt(document.getElementById('bk-wc').value)||80000,cover_color:document.getElementById('bk-color').value,updated_at:new Date().toISOString()};
+  const id=document.getElementById('bk-id').value;
+  if(id){await sb(`books?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});closeModal('modal-book');if(currentBook){currentBook={...currentBook,...p};updateBookHeader();}await loadBooks();toast('Book updated');}
+  else{const r=await sb('books',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});if(r&&r[0]){closeModal('modal-book');await loadBooks();openBook(r[0].id);}else toast('Error creating book');}
+}
+async function deleteBook(){
+  if(!currentBook||!confirm(`Permanently delete "${currentBook.title}"? All data will be lost.`)) return;
+  await sb(`books?id=eq.${currentBook.id}`,{method:'DELETE'});
+  closeModal('modal-book');goToShelf();await loadBooks();toast('Book deleted');
+}
+async function openBook(id){
+  bookId=id; currentBook=books.find(b=>b.id===id);
+  if(!currentBook){const d=await sb(`books?id=eq.${id}`);if(d&&d[0])currentBook=d[0];else{toast('Book not found');return;}}
+  document.getElementById('bookshelf').style.display='none';
+  document.getElementById('app').classList.add('open');
+  updateBookHeader();
+  await loadAllData();
+  showTab('dashboard',document.querySelector('.nav-item.active'));
+  setupRealtime(); setupDragDrop();
+}
+function updateBookHeader(){
+  document.getElementById('sidebar-book-name').textContent=currentBook.title;
+  document.getElementById('sidebar-book-genre').textContent=currentBook.genre||'';
+  document.getElementById('book-dot').style.background=currentBook.cover_color||'var(--accent)';
+}
+function goToShelf(){
+  document.getElementById('app').classList.remove('open');
+  document.getElementById('bookshelf').style.display='flex';
+  bookId=null;currentBook=null;
+  chapters=[];ideas=[];documents=[];discussion=[];characters=[];
+  events=[];tasks=[];milestones=[];sessions=[];activity=[];
+  loadBooks();
+}
+async function loadAllData(){
+  await Promise.all([
+    loadChapters(),loadIdeas(),loadDocuments(),loadDiscussion(),
+    loadChars(),loadEvents(),loadTasks(),loadMilestones(),loadSessions(),loadActivity()
+  ].map(p=>p.catch(e=>console.warn('load:',e))));
+  renderDashboard();
+}
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+const TAB_CFG={
+  dashboard:{title:'Dashboard',label:'New Chapter',fn:openNewChapter},
+  chapters:{title:'Chapters',label:'New Chapter',fn:openNewChapter},
+  ideas:{title:'Idea Board',label:'Add Idea',fn:()=>openModal('modal-idea')},
+  docs:{title:'Documents',label:'Upload',fn:()=>document.getElementById('file-input').click()},
+  discuss:{title:'Discussion',label:'',fn:()=>{}},
+  wizards:{title:'Doc Builder',label:'',fn:()=>{}},
+  characters:{title:'Characters',label:'Add Character',fn:openNewChar},
+  timeline:{title:'Timeline',label:'Add Event',fn:openNewEvent},
+  tasks:{title:'Tasks',label:'Add Task',fn:openNewTask},
+  milestones:{title:'Milestones',label:'Add Milestone',fn:openNewMs},
+  sessions:{title:'Sessions',label:'Log Session',fn:openNewSess},
+};
+function showTab(tab,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const te=document.getElementById('tab-'+tab);
+  if(te)te.classList.add('active');
+  currentTab=tab;
+  const cfg=TAB_CFG[tab]||{};
+  document.getElementById('page-title').textContent=cfg.title||tab;
+  document.getElementById('mobile-title').textContent=cfg.title||tab;
+  const btn=document.getElementById('topbar-btn');
+  if(btn){btn.style.display=cfg.label?'inline-flex':'none';}
+  document.getElementById('topbar-label').textContent=cfg.label||'';
+  closeMobileMenu();
+  if(tab==='dashboard')renderDashboard();
+  else if(tab==='chapters')renderChapters();
+  else if(tab==='ideas')renderIdeas();
+  else if(tab==='docs')renderDocs();
+  else if(tab==='discuss')renderDiscussion();
+  else if(tab==='wizards')renderWizards();
+  else if(tab==='characters')renderChars();
+  else if(tab==='timeline')renderTimeline();
+  else if(tab==='tasks')renderTasks();
+  else if(tab==='milestones')renderMs();
+  else if(tab==='sessions')renderSessions();
+  setTimeout(()=>bgRefresh(tab),100);
+}
+async function bgRefresh(tab){
+  if(!bookId)return;
+  if(tab==='chapters'){await loadChapters();renderChapters();}
+  else if(tab==='ideas'){await loadIdeas();renderIdeas();}
+  else if(tab==='docs'){await loadDocuments();renderDocs();}
+  else if(tab==='discuss'){await loadDiscussion();renderDiscussion();}
+  else if(tab==='characters'){await loadChars();renderChars();}
+  else if(tab==='timeline'){await loadEvents();renderTimeline();}
+  else if(tab==='tasks'){await loadTasks();renderTasks();}
+  else if(tab==='milestones'){await loadMilestones();renderMs();}
+  else if(tab==='sessions'){await loadSessions();renderSessions();}
+  else if(tab==='dashboard'){await Promise.all([loadChapters(),loadActivity()]);renderDashboard();}
+}
+function topbarAction(){const cfg=TAB_CFG[currentTab];if(cfg&&cfg.fn)cfg.fn();}
+
+// ════════════════════════════════
+// CHAPTERS
+// ════════════════════════════════
+async function loadChapters(){if(!bookId)return;const d=await sb(`chapters?book_id=eq.${bookId}&order=number`);if(d)chapters=d;}
+function renderChapters(){
+  const el=document.getElementById('chapters-list');
+  if(!chapters.length){el.innerHTML='<div class="empty-state"><i class="fas fa-list-ol"></i><p>No chapters yet</p><button class="btn btn-primary" onclick="openNewChapter()"><i class="fas fa-plus"></i> Add First Chapter</button></div>';return;}
+  el.innerHTML=chapters.sort((a,b)=>a.number-b.number).map(c=>{
+    const pct={outline:5,draft:35,review:75,done:100}[c.status]||0;
+    const ss=['outline','draft','review','done'];
+    const pills=ss.map(s=>`<button onclick="qStatus(event,'${c.id}','${s}')" style="padding:2px 8px;font-size:10px;border-radius:10px;border:1px solid ${c.status===s?'transparent':'var(--border)'};background:${c.status===s?sColor(s):'transparent'};color:${c.status===s?'#fff':sColor(s)};cursor:pointer;transition:all .12s">${sLabel(s)}</button>`).join('');
+    return `<div class="chap-card" onclick="openEditor('${c.id}')">
+      <div class="chap-top">
+        <div class="chap-num">Ch. ${c.number}</div>
+        <div class="chap-name">${esc(c.title)}</div>
+        ${c.body&&c.body.trim()?'<i class="fas fa-pen-nib" style="font-size:9px;color:var(--accent);opacity:.5"></i>':''}
+      </div>
+      <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap" onclick="event.stopPropagation()">${pills}</div>
+      <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="chap-meta">${c.word_count?c.word_count.toLocaleString()+' words':'0 words'}${c.pov?' · '+esc(c.pov):''}</div>
+    </div>`;
+  }).join('');
+}
+function sLabel(s){return{outline:'Outline',draft:'Draft',review:'In Review',done:'Done'}[s]||s;}
+function sColor(s){return{outline:'var(--text3)',draft:'var(--blue)',review:'var(--amber)',done:'var(--green)'}[s]||'var(--text3)';}
+async function qStatus(e,id,status){e.stopPropagation();await sb(`chapters?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({status,updated_at:new Date().toISOString()})});const i=chapters.findIndex(c=>c.id===id);if(i>=0)chapters[i].status=status;renderChapters();renderDashboard();toast('→ '+sLabel(status));}
+function openNewChapter(){document.getElementById('modal-chap-title').textContent='Add Chapter';document.getElementById('ch-num').value=chapters.length+1;['ch-title','ch-pov','ch-part','ch-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ch-status').value='outline';document.getElementById('ch-id').value='';openModal('modal-chapter');}
+async function saveChapter(){const p={book_id:bookId,number:parseInt(document.getElementById('ch-num').value)||1,title:document.getElementById('ch-title').value.trim()||'Untitled',status:document.getElementById('ch-status').value,pov:document.getElementById('ch-pov').value.trim(),part:document.getElementById('ch-part').value.trim(),notes:document.getElementById('ch-notes').value.trim(),word_count:0,updated_at:new Date().toISOString()};const id=document.getElementById('ch-id').value;if(id){await sb(`chapters?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});toast('Chapter updated');}else{await sb('chapters',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});toast('Chapter added');logActivity(`Added chapter "${p.title}"`);}closeModal('modal-chapter');await loadChapters();renderChapters();renderDashboard();}
+
+// ════════════════════════════════
+// CHAPTER EDITOR
+// ════════════════════════════════
+function openEditor(id){
+  const c=chapters.find(x=>x.id===id);if(!c)return;
+  editorChapId=id;
+  document.getElementById('ed-chapnum').textContent='Ch. '+c.number;
+  document.getElementById('ed-title').value=c.title||'';
+  document.getElementById('ed-status').value=c.status||'outline';
+  document.getElementById('editor-body').value=c.body||'';
+  document.getElementById('brief-content').textContent=c.notes||'No brief for this chapter.';
+  edWC();
+  ['brief','notes','history'].forEach(closePanel);
+  loadNotes();loadHistory();
+  document.getElementById('editor-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('editor-body').focus(),80);
+}
+function closeEditor(){document.getElementById('editor-overlay').classList.remove('open');editorChapId=null;}
+function edWC(){const b=document.getElementById('editor-body').value;const w=b.trim()?b.trim().split(/\s+/).length:0;document.getElementById('ed-wc').textContent=w.toLocaleString()+' words';}
+async function saveEditor(){
+  if(!editorChapId)return;
+  const body=document.getElementById('editor-body').value;
+  const title=document.getElementById('ed-title').value.trim();
+  const status=document.getElementById('ed-status').value;
+  const word_count=body.trim()?body.trim().split(/\s+/).length:0;
+  await sb(`chapters?id=eq.${editorChapId}`,{method:'PATCH',body:JSON.stringify({body,title,status,word_count,updated_at:new Date().toISOString()})});
+  const i=chapters.findIndex(c=>c.id===editorChapId);
+  if(i>=0)Object.assign(chapters[i],{body,title,status,word_count});
+  renderDashboard();toast('Saved');
+}
+async function deleteChapter(){const c=chapters.find(x=>x.id===editorChapId);if(!c||!confirm(`Delete Ch. ${c.number} — "${c.title}"?`))return;await sb(`chapter_versions?chapter_id=eq.${editorChapId}`,{method:'DELETE'});await sb(`chapters?id=eq.${editorChapId}`,{method:'DELETE'});closeEditor();await loadChapters();renderChapters();renderDashboard();toast('Chapter deleted');}
+setInterval(async()=>{if(editorChapId&&document.getElementById('editor-overlay').classList.contains('open'))await saveEditor();},30000);
+
+function togglePanel(p){const el=document.getElementById('panel-'+p);const open=el.style.display==='flex';['brief','notes','history'].forEach(closePanel);if(!open){el.style.display='flex';document.getElementById('btn-'+p).style.background='var(--accent)';document.getElementById('btn-'+p).style.color='#fff';}}
+function closePanel(p){const el=document.getElementById('panel-'+p);if(el)el.style.display='none';const btn=document.getElementById('btn-'+p);if(btn){btn.style.background='transparent';btn.style.color='var(--text)';}}
+
+async function loadHistory(){if(!editorChapId)return;const d=await sb(`chapter_versions?chapter_id=eq.${editorChapId}&order=created_at.desc&limit=20`);const el=document.getElementById('history-list');if(!d||!d.length){el.innerHTML='<div style="font-size:12px;color:var(--text3)">No versions saved yet.</div>';return;}el.innerHTML=d.map(v=>`<div style="padding:8px;background:var(--bg3);border-radius:6px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:12px;font-weight:500;color:var(--text)">${esc(v.label||'Version')}</span><span style="font-size:10px;color:var(--text3)">${timeAgo(v.created_at)}</span></div><div style="font-size:11px;color:var(--text3);margin-bottom:5px">${(v.word_count||0).toLocaleString()} words</div><button class="btn btn-sm" onclick="restoreVer('${v.id}')" style="font-size:10px;padding:2px 8px;color:var(--amber);border-color:var(--amber)">Restore</button></div>`).join('');}
+async function saveVersion(){if(!editorChapId)return;const body=document.getElementById('editor-body').value;const wc=body.trim()?body.trim().split(/\s+/).length:0;const label=prompt('Name this version:','Version '+new Date().toLocaleString());if(!label)return;await sb('chapter_versions',{method:'POST',body:JSON.stringify({chapter_id:editorChapId,body,word_count:wc,label}),headers:{...H,'Prefer':'return=representation'}});await loadHistory();toast('Version saved');}
+async function restoreVer(id){if(!confirm('Restore this version?'))return;await saveVersion();const d=await sb(`chapter_versions?id=eq.${id}`);if(d&&d[0]){document.getElementById('editor-body').value=d[0].body||'';edWC();await saveEditor();toast('Restored!');}}
+
+async function loadNotes(){if(!editorChapId)return;const d=await sb(`passage_notes?chapter_id=eq.${editorChapId}&order=created_at.desc`);const el=document.getElementById('notes-list');if(!d||!d.length){el.innerHTML='<div style="font-size:12px;color:var(--text3)">No notes for this chapter.</div>';return;}el.innerHTML=d.map(n=>`<div style="padding:8px 9px;background:var(--bg3);border-radius:6px;margin-bottom:6px">${n.passage?`<div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:4px;padding:4px 6px;background:var(--bg2);border-radius:4px;border-left:2px solid var(--accent)">"${esc(n.passage.slice(0,70))}${n.passage.length>70?'…':''}"</div>`:''}<div style="font-size:13px;color:var(--text);margin-bottom:4px">${esc(n.note)}</div><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:var(--text3)">${esc(n.author_name||'')} · ${timeAgo(n.created_at)}</span><button onclick="deleteNote('${n.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'"><i class="fas fa-times"></i></button></div></div>`).join('');}
+function openAddNote(){document.getElementById('note-passage').value='';document.getElementById('note-text').value='';openModal('modal-note');}
+async function saveNote(){const note=document.getElementById('note-text').value.trim();if(!note)return;await sb('passage_notes',{method:'POST',body:JSON.stringify({book_id:bookId,chapter_id:editorChapId,passage:document.getElementById('note-passage').value.trim(),note,author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});closeModal('modal-note');await loadNotes();toast('Note saved');}
+async function deleteNote(id){if(!confirm('Delete note?'))return;await sb(`passage_notes?id=eq.${id}`,{method:'DELETE'});await loadNotes();toast('Note deleted');}
+
+let ttsOn=false;
+function editorReadAloud(){if(ttsOn){speechSynthesis.cancel();ttsOn=false;toast('Stopped');return;}const t=document.getElementById('editor-body').value.trim();if(!t){toast('Nothing to read');return;}const u=new SpeechSynthesisUtterance(t);u.rate=0.92;u.onend=()=>{ttsOn=false;};speechSynthesis.speak(u);ttsOn=true;toast('Reading aloud…');}
+
+// ════════════════════════════════
+// IDEAS
+// ════════════════════════════════
+async function loadIdeas(){if(!bookId)return;const d=await sb(`ideas?book_id=eq.${bookId}&order=created_at.desc`);if(d)ideas=d;}
+function renderIdeas(){const g=document.getElementById('ideas-grid');const em=document.getElementById('ideas-empty');if(!ideas.length){g.innerHTML='';em.style.display='block';return;}em.style.display='none';g.innerHTML=ideas.map(i=>`<div class="idea-card cat-${i.category}"><div class="idea-tag">${catLabel(i.category)}</div><div class="idea-body">${esc(i.content)}</div><div class="idea-foot"><span class="idea-author">${esc(i.author_name||'')} · ${timeAgo(i.created_at)}</span><button class="idea-del" onclick="deleteIdea('${i.id}',event)"><i class="fas fa-times"></i></button></div></div>`).join('');}
+async function saveIdea(){const content=document.getElementById('idea-text').value.trim();if(!content)return;await sb('ideas',{method:'POST',body:JSON.stringify({book_id:bookId,category:document.getElementById('idea-cat').value,content,author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});closeModal('modal-idea');document.getElementById('idea-text').value='';toast('Idea added');logActivity('Added an idea');await loadIdeas();renderIdeas();renderDashboard();}
+async function deleteIdea(id,e){e.stopPropagation();if(!confirm('Delete this idea?'))return;await sb(`ideas?id=eq.${id}`,{method:'DELETE'});await loadIdeas();renderIdeas();renderDashboard();toast('Idea deleted');}
+function catLabel(c){return{plot:'Plot',character:'Character',world:'World-building',theme:'Theme',misc:'Misc'}[c]||c;}
+
+// ════════════════════════════════
+// DOCUMENTS
+// ════════════════════════════════
+async function loadDocuments(){if(!bookId)return;const d=await sb(`documents?book_id=eq.${bookId}&order=created_at.desc`);if(d)documents=d;}
+function renderDocs(){const el=document.getElementById('docs-list');if(!documents.length){el.innerHTML='<div class="empty-state"><i class="fas fa-folder-open"></i><p>No documents yet</p></div>';return;}el.innerHTML=documents.map(d=>`<div class="doc-row"><span class="doc-icon">${fIcon(d.file_type)}</span><div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${fmtBytes(d.file_size)} · ${esc(d.author_name||'')} · ${timeAgo(d.created_at)}</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="btn btn-sm" onclick="viewDoc('${d.id}')"><i class="fas fa-eye"></i></button><a class="btn btn-sm" href="${sbUrl(d.file_path)}" download="${esc(d.name)}"><i class="fas fa-download"></i></a><button class="btn btn-sm btn-danger" onclick="deleteDoc('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');}
+function setupDragDrop(){const z=document.getElementById('upload-zone');if(!z)return;z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag-over')});z.addEventListener('dragleave',()=>z.classList.remove('drag-over'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag-over');handleFiles(e.dataTransfer.files)});}
+function handleFileSelect(e){handleFiles(e.target.files);}
+async function handleFiles(files){if(!files||!files.length)return;for(const f of files){toast(`Uploading ${f.name}…`);const fp=`${bookId}/${Date.now()}_${f.name.replace(/\s+/g,'_')}`;const ok=await sbUpload(fp,f);if(!ok){toast(`Failed: ${f.name}`);continue;}await sb('documents',{method:'POST',body:JSON.stringify({book_id:bookId,name:f.name,file_path:fp,file_type:f.type||f.name.split('.').pop(),file_size:f.size,author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});logActivity(`Uploaded "${f.name}"`);toast(`${f.name} uploaded`);}document.getElementById('file-input').value='';await loadDocuments();renderDocs();renderDashboard();}
+async function deleteDoc(id){if(!confirm('Delete this document?'))return;const d=documents.find(x=>x.id===id);if(d)await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${d.file_path}`,{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});await sb(`documents?id=eq.${id}`,{method:'DELETE'});await loadDocuments();renderDocs();renderDashboard();toast('Deleted');}
+
+// Viewer
+async function viewDoc(id){
+  const d=documents.find(x=>x.id===id);if(!d)return;
+  const ov=document.getElementById('viewer-overlay');ov.classList.add('open');
+  const body=document.getElementById('viewer-body');const pdfNav=document.getElementById('pdf-nav');
+  document.getElementById('viewer-title').textContent=d.name;
+  document.getElementById('viewer-dl').href=sbUrl(d.file_path);document.getElementById('viewer-dl').download=d.name;
+  body.innerHTML='<div class="loading"><div class="spinner"></div> Loading…</div>';pdfNav.style.display='none';
+  const url=sbUrl(d.file_path);const t=d.file_type.toLowerCase();
+  if(t.includes('pdf')||d.name.endsWith('.pdf')){
+    try{
+      if(typeof pdfjsLib==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';document.head.appendChild(s);await new Promise(r=>s.onload=r);}
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const ab=await (await fetch(url)).arrayBuffer();pdfDoc=await pdfjsLib.getDocument({data:ab}).promise;pdfPage=1;pdfNav.style.display='flex';await renderPdf();
+    }catch(e){body.innerHTML='<div class="viewer-content"><p style="color:var(--red)">Could not load PDF. <a href="'+url+'" target="_blank">Open in new tab</a></p></div>';}
+  } else if(d.name.endsWith('.docx')||d.name.endsWith('.doc')){
+    try{
+      if(typeof mammoth==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';document.head.appendChild(s);await new Promise(r=>s.onload=r);}
+      const ab=await (await fetch(url)).arrayBuffer();const r=await mammoth.convertToHtml({arrayBuffer:ab});body.innerHTML=`<div class="viewer-content">${r.value}</div>`;
+    }catch(e){body.innerHTML='<div class="viewer-content"><p>Could not preview — <a href="'+url+'" download>download to view</a></p></div>';}
+  } else {
+    try{const t=await (await fetch(url)).text();body.innerHTML=`<div class="viewer-content"><pre style="white-space:pre-wrap;font-size:13px;font-family:inherit">${esc(t)}</pre></div>`;}
+    catch(e){body.innerHTML=`<div class="viewer-content" style="text-align:center;padding:40px"><a class="btn btn-primary" href="${url}" download="${esc(d.name)}"><i class="fas fa-download"></i> Download</a></div>`;}
+  }
+}
+async function renderPdf(){if(!pdfDoc)return;const b=document.getElementById('viewer-body');const page=await pdfDoc.getPage(pdfPage);const vp=page.getViewport({scale:1.4});const c=document.createElement('canvas');c.style.cssText='display:block;max-width:100%;margin:0 auto';c.width=vp.width;c.height=vp.height;b.innerHTML='';b.appendChild(c);await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;document.getElementById('pdf-info').textContent=`Page ${pdfPage} of ${pdfDoc.numPages}`;}
+function pdfPrev(){if(pdfPage>1){pdfPage--;renderPdf();}}
+function pdfNext(){if(pdfDoc&&pdfPage<pdfDoc.numPages){pdfPage++;renderPdf();}}
+function closeViewer(){document.getElementById('viewer-overlay').classList.remove('open');pdfDoc=null;}
+
+// ════════════════════════════════
+// DISCUSSION
+// ════════════════════════════════
+async function loadDiscussion(){if(!bookId)return;const d=await sb(`discussion?book_id=eq.${bookId}&order=created_at&limit=100`);if(d)discussion=d;}
+function renderDiscussion(){const el=document.getElementById('discuss-list');if(!discussion.length){el.innerHTML='<div class="empty-state" style="padding:20px"><i class="fas fa-comments"></i><p>Start the conversation!</p></div>';return;}el.innerHTML=discussion.map(m=>{const me=m.author_name===displayName;return`<div class="msg"><div class="msg-av">${(m.author_name||'?').slice(0,2).toUpperCase()}</div><div class="msg-bubble"${me?' style="border-color:var(--accent-glow)"':''}><span class="msg-name">${esc(m.author_name||'Unknown')}</span><span class="msg-time">${timeAgo(m.created_at)}</span><div class="msg-text">${esc(m.content)}</div></div></div>`;}).join('');el.scrollTop=el.scrollHeight;}
+async function sendMessage(){const inp=document.getElementById('compose-input');const c=inp.value.trim();if(!c)return;await sb('discussion',{method:'POST',body:JSON.stringify({book_id:bookId,content:c,author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});inp.value='';inp.style.height='';await loadDiscussion();renderDiscussion();}
+function handleCompose(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+
+// ════════════════════════════════
+// DOCUMENT BUILDER WIZARDS
+// ════════════════════════════════
+const WIZARDS=[
+  {id:'story-spine',title:'Story Spine',icon:'fas fa-dna',bg:'rgba(139,58,58,.1)',color:'var(--accent)',desc:'The emotional skeleton of your novel — premise, inciting incident, rising action, climax, and resolution.',
+    steps:[
+      {q:'What is your core premise?',hint:'In one or two sentences: who is this about, what do they want, and what stands in their way?',f:'premise'},
+      {q:'What is the inciting incident?',hint:'The event that disrupts your protagonist\'s ordinary world and sets the story in motion. Usually in the first 10-15% of the book.',f:'inciting'},
+      {q:'What are the key rising action beats?',hint:'List 3-5 major escalations building toward the climax. Each should raise the stakes.',f:'rising'},
+      {q:'What is the climax?',hint:'The moment of highest tension — the decisive confrontation your protagonist must face. Everything builds to this.',f:'climax'},
+      {q:'What is the resolution?',hint:'How does the story end? What has changed? What has your protagonist learned, lost, or gained?',f:'resolution'},
+      {q:'What is the central theme?',hint:'What is this story really about beneath the plot? What truth does it explore?',f:'theme'},
+    ]},
+  {id:'plot-structure',title:'Plot Structure Map',icon:'fas fa-project-diagram',bg:'rgba(32,96,160,.1)',color:'var(--blue)',desc:'The mechanical architecture — acts, turning points, midpoint, and the dark night of the soul.',
+    steps:[
+      {q:'What is your opening image or scene?',hint:'The world as it is before everything changes. Should contrast with your final image.',f:'opening'},
+      {q:'What is the end of Act One (first plot point)?',hint:'The threshold your protagonist crosses and can\'t return from. Around 25% of the book.',f:'act1'},
+      {q:'What happens at the midpoint?',hint:'A false victory or defeat that shifts direction. Protagonist moves from reactive to proactive. Around 50%.',f:'midpoint'},
+      {q:'What is the end of Act Two (dark night)?',hint:'The lowest moment — everything seems lost. Around 75%. Forces the final push.',f:'act2'},
+      {q:'What is your climactic sequence?',hint:'The final confrontation. How does your protagonist use everything they\'ve learned?',f:'climax'},
+      {q:'What is your closing image or scene?',hint:'The world after the story. Should echo — and contrast — your opening.',f:'closing'},
+    ]},
+  {id:'character-profile',title:'Character Profile',icon:'fas fa-user-circle',bg:'rgba(42,128,80,.1)',color:'var(--green)',desc:'A deep-dive profile for any character — protagonist, antagonist, or supporting cast.',
+    steps:[
+      {q:'Name and role?',hint:'Their full name and function in the story (protagonist, antagonist, love interest, mentor, etc.)',f:'name_role'},
+      {q:'What do they want more than anything?',hint:'Their external goal — the concrete thing they\'re pursuing in the story.',f:'want'},
+      {q:'What do they need (that they don\'t know they need)?',hint:'The internal wound or belief holding them back. Often the opposite of what they want.',f:'need'},
+      {q:'What is their core strength?',hint:'The quality that makes them compelling. What do they do better than anyone?',f:'strength'},
+      {q:'What is their fatal flaw?',hint:'The thing that keeps getting in their way, often rooted in their wound.',f:'flaw'},
+      {q:'What is their arc?',hint:'How do they change from beginning to end? What do they learn, lose, or become?',f:'arc'},
+      {q:'What key backstory shapes who they are?',hint:'One or two formative experiences that explain why they are the way they are now.',f:'backstory'},
+    ]},
+  {id:'voice-doc',title:'Voice Document',icon:'fas fa-microphone-alt',bg:'rgba(184,120,0,.1)',color:'var(--amber)',desc:'Define how your novel sounds — POV, narrative distance, tone, and guardrails against voice drift.',
+    steps:[
+      {q:'What is the POV structure?',hint:'Single first person? Dual POV? Third limited? List your narrators and their POV type.',f:'pov'},
+      {q:'Describe your primary narrator\'s voice.',hint:'How do they think? What do they notice? Their emotional register? Are they reliable?',f:'primary'},
+      {q:'Second narrator\'s voice (if applicable)?',hint:'How does it differ? What do they notice that the other misses? What\'s their blind spot?',f:'secondary'},
+      {q:'What is the overall tone?',hint:'Warmth? Irony? Melancholy? Dark humor? Lyrical? Spare? The emotional atmosphere.',f:'tone'},
+      {q:'What does each narrator NEVER do or say?',hint:'Voice guardrails — the things that would feel out of character. Your drift-check rules.',f:'guardrails'},
+      {q:'Vocabulary and sentence structure rules?',hint:'Short punchy or long layered? Formal or colloquial? Words or constructions that feel wrong?',f:'vocab'},
+    ]},
+  {id:'world-bible',title:'World Bible',icon:'fas fa-globe-americas',bg:'rgba(90,58,139,.1)',color:'#7a5ac8',desc:'The continuity reference — settings, rules, and recurring details that must stay consistent.',
+    steps:[
+      {q:'When and where is this set?',hint:'Time period, location, world-building context. Be specific.',f:'setting'},
+      {q:'What are the key locations?',hint:'Main settings characters inhabit. For each, note any details that must stay consistent.',f:'locations'},
+      {q:'What are the rules of your world?',hint:'Systems, constraints, logic — magic systems, technology limits, social structures.',f:'rules'},
+      {q:'What recurring symbols or objects appear?',hint:'Things that show up multiple times and carry meaning. Note their significance.',f:'motifs'},
+      {q:'Key continuity details to track?',hint:'Physical details, relationships, job titles, vehicle descriptions — anything that must stay consistent.',f:'continuity'},
+    ]},
+  {id:'chapter-skeleton',title:'Chapter Skeleton',icon:'fas fa-file-alt',bg:'rgba(139,58,58,.08)',color:'var(--accent)',desc:'Plan individual chapters — scene goal, conflict, outcome, and emotional shift.',
+    steps:[
+      {q:'Which chapter is this for?',hint:'Chapter number and title, plus POV character if applicable.',f:'label'},
+      {q:'What is the scene\'s external goal?',hint:'What does the POV character want to achieve? What are they trying to get, avoid, or accomplish?',f:'goal'},
+      {q:'What is the conflict or obstacle?',hint:'What stands between the character and their goal? External (another person) or internal (a fear)?',f:'conflict'},
+      {q:'What is the outcome?',hint:'Does the character get what they want? Yes/no/yes-but/no-and — the most dynamic choice.',f:'outcome'},
+      {q:'What is the emotional shift?',hint:'Where does the character start emotionally and where do they end? Even subtle shifts engage readers.',f:'shift'},
+      {q:'What must the reader take away?',hint:'One key piece of information, revelation, or emotional experience the reader needs.',f:'takeaway'},
+    ]},
+];
+
+let savedWizardDocs=[];
+async function loadSavedWizards(){if(!bookId)return;const d=await sb(`wizard_documents?book_id=eq.${bookId}&order=updated_at.desc`);if(d)savedWizardDocs=d;}
+function renderWizards(){
+  loadSavedWizards().then(()=>{
+    const g=document.getElementById('wizard-grid');
+    g.innerHTML=WIZARDS.map(w=>{
+      const saved=savedWizardDocs.find(s=>s.type===w.id);
+      return`<div class="wiz-card" onclick="openWizard('${w.id}')">
+        ${saved?`<div class="wiz-badge wiz-done">✓ Saved</div>`:''}
+        <div class="wiz-icon" style="background:${w.bg}"><i class="${w.icon}" style="color:${w.color}"></i></div>
+        <div class="wiz-title">${w.title}</div>
+        <div class="wiz-desc">${w.desc}</div>
+      </div>`;
+    }).join('');
+    const sec=document.getElementById('saved-wizards-section');
+    const list=document.getElementById('saved-wizards-list');
+    if(savedWizardDocs.length){
+      sec.style.display='block';
+      list.innerHTML=savedWizardDocs.map(d=>`<div class="saved-wiz-card" onclick="viewSavedWizard('${d.id}')">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:13px;font-weight:500;color:var(--text);font-family:Georgia,serif">${esc(d.title)}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="event.stopPropagation();editSavedWizard('${d.id}')" title="Edit"><i class="fas fa-pen"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteSavedWizard('${d.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">Updated ${timeAgo(d.updated_at)}</div>
+      </div>`).join('');
+    } else {sec.style.display='none';}
+  });
+}
+function openWizard(id){
+  wizardDef=WIZARDS.find(w=>w.id===id);if(!wizardDef)return;
+  const saved=savedWizardDocs.find(s=>s.type===id);
+  wizardStep=0;wizardAnswers=saved?{...saved.content}:{};
+  document.getElementById('wiz-title').textContent=wizardDef.title+' Builder';
+  renderWizardStep();openModal('modal-wizard');
+}
+function editSavedWizard(id){const d=savedWizardDocs.find(x=>x.id===id);if(!d)return;openWizard(d.type);}
+async function viewSavedWizard(id){
+  const d=savedWizardDocs.find(x=>x.id===id);if(!d)return;
+  const wiz=WIZARDS.find(w=>w.id===d.type);if(!wiz)return;
+  let html=`<div style="font-size:18px;font-weight:600;margin-bottom:16px;font-family:Georgia,serif">${esc(d.title)}</div>`;
+  wiz.steps.forEach(s=>{if(d.content[s.f]){html+=`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px">${esc(s.q)}</div><div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;padding:10px;background:var(--bg3);border-radius:var(--radius-sm)">${esc(d.content[s.f])}</div></div>`;}});
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(d.title)}</title><style>body{max-width:680px;margin:40px auto;font-family:Georgia,serif;color:#2a1a0a;background:#faf7f2;padding:20px}.q{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9a8878;margin-bottom:4px}.a{background:#f0ebe3;padding:12px;border-radius:6px;font-size:14px;line-height:1.65;white-space:pre-wrap;margin-bottom:18px}</style></head><body><h1 style="font-size:24px;font-weight:400;margin-bottom:24px">${esc(d.title)}</h1>${wiz.steps.map(s=>d.content[s.f]?`<div class="q">${esc(s.q)}</div><div class="a">${esc(d.content[s.f])}</div>`:''). join('')}</body></html>`);
+  win.document.close();
+}
+async function deleteSavedWizard(id){if(!confirm('Delete this document?'))return;await sb(`wizard_documents?id=eq.${id}`,{method:'DELETE'});await loadSavedWizards();renderWizards();toast('Deleted');}
+function renderWizardStep(){
+  const s=wizardDef.steps;const step=s[wizardStep];
+  document.getElementById('wiz-prog').innerHTML=s.map((_,i)=>`<div class="wiz-dot${i<=wizardStep?' done':''}"></div>`).join('');
+  document.getElementById('wiz-body').innerHTML=`<div class="wiz-q">${step.q}</div><div class="wiz-hint">${step.hint}</div><textarea class="form-input" id="wiz-ans" style="min-height:95px" placeholder="Your answer…">${wizardAnswers[step.f]||''}</textarea>`;
+  document.getElementById('wiz-indicator').textContent=`${wizardStep+1} of ${s.length}`;
+  document.getElementById('wiz-back').style.visibility=wizardStep===0?'hidden':'visible';
+  document.getElementById('wiz-next').innerHTML=wizardStep===s.length-1?'Finish <i class="fas fa-check"></i>':'Next <i class="fas fa-chevron-right"></i>';
+  setTimeout(()=>{const a=document.getElementById('wiz-ans');if(a)a.focus();},80);
+}
+function saveWizAnswer(){const a=document.getElementById('wiz-ans');if(a&&wizardDef)wizardAnswers[wizardDef.steps[wizardStep].f]=a.value.trim();}
+function wizBack(){if(!wizardStep)return;saveWizAnswer();wizardStep--;renderWizardStep();}
+async function wizNext(){saveWizAnswer();if(wizardStep<wizardDef.steps.length-1){wizardStep++;renderWizardStep();}else{await finishWizard();}}
+async function finishWizard(){
+  const existing=savedWizardDocs.find(s=>s.type===wizardDef.id);
+  if(existing){await sb(`wizard_documents?id=eq.${existing.id}`,{method:'PATCH',body:JSON.stringify({content:wizardAnswers,updated_at:new Date().toISOString()})});}
+  else{await sb('wizard_documents',{method:'POST',body:JSON.stringify({book_id:bookId,type:wizardDef.id,title:wizardDef.title,content:wizardAnswers}),headers:{...H,'Prefer':'return=representation'}});}
+  logActivity(`Completed ${wizardDef.title}`);
+  closeModal('modal-wizard');toast(`${wizardDef.title} saved!`);
+  await loadSavedWizards();renderWizards();
+  if(wizardDef.id==='character-profile'&&wizardAnswers.name_role){
+    if(confirm(`Add "${wizardAnswers.name_role.split(/[\n,]/)[0].trim()}" to Characters?`)){
+      const name=wizardAnswers.name_role.split(/[\n,]/)[0].trim();
+      await sb('characters',{method:'POST',body:JSON.stringify({book_id:bookId,name,trait:wizardAnswers.strength||'',flaw:wizardAnswers.flaw||'',arc:wizardAnswers.arc||'',backstory:wizardAnswers.backstory||'',notes:`Want: ${wizardAnswers.want||''}\nNeed: ${wizardAnswers.need||''}`}),headers:{...H,'Prefer':'return=representation'}});
+      await loadChars();renderChars();toast('Character added!');
+    }
+  }
+}
+
+// ════════════════════════════════
+// CHARACTERS
+// ════════════════════════════════
+async function loadChars(){if(!bookId)return;const d=await sb(`characters?book_id=eq.${bookId}&order=created_at`);if(d)characters=d;}
+function renderChars(){const g=document.getElementById('char-grid');if(!characters.length){g.innerHTML='<div class="empty-state"><i class="fas fa-users"></i><p>No characters yet</p><button class="btn btn-primary" onclick="openNewChar()"><i class="fas fa-plus"></i> Add Character</button></div>';return;}g.innerHTML=characters.map(c=>`<div class="char-card"><div class="char-header"><div class="char-av" style="background:${c.color}22;color:${c.color}">${esc(c.emoji||c.name.slice(0,1))}</div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:Georgia,serif">${esc(c.name)}</div><div style="font-size:11px;color:var(--text3)">${esc(c.role||'')}</div></div><button class="btn btn-sm" onclick="openEditChar('${c.id}')"><i class="fas fa-pen"></i></button></div><div class="char-body">${c.trait?`<div class="char-row"><span class="char-row-label">Trait</span><span class="char-row-val">${esc(c.trait)}</span></div>`:''} ${c.flaw?`<div class="char-row"><span class="char-row-label">Flaw</span><span class="char-row-val">${esc(c.flaw)}</span></div>`:''} ${c.arc?`<div class="char-row"><span class="char-row-label">Arc</span><span class="char-row-val">${esc(c.arc)}</span></div>`:''} ${c.notes?`<div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4">${esc(c.notes.slice(0,120))}${c.notes.length>120?'…':''}</div>`:''}</div></div>`).join('');}
+function openNewChar(){document.getElementById('modal-char-title').textContent='Add Character';['c-name','c-role','c-emoji','c-trait','c-flaw','c-arc','c-backstory','c-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('c-color').value='#8B3A3A';document.getElementById('c-id').value='';document.getElementById('c-delete').style.display='none';openModal('modal-char');}
+function openEditChar(id){const c=characters.find(x=>x.id===id);if(!c)return;document.getElementById('modal-char-title').textContent='Edit Character';document.getElementById('c-name').value=c.name||'';document.getElementById('c-role').value=c.role||'';document.getElementById('c-emoji').value=c.emoji||'';document.getElementById('c-trait').value=c.trait||'';document.getElementById('c-flaw').value=c.flaw||'';document.getElementById('c-arc').value=c.arc||'';document.getElementById('c-backstory').value=c.backstory||'';document.getElementById('c-notes').value=c.notes||'';document.getElementById('c-color').value=c.color||'#8B3A3A';document.getElementById('c-id').value=id;document.getElementById('c-delete').style.display='inline-flex';openModal('modal-char');}
+async function saveChar(){const p={book_id:bookId,name:document.getElementById('c-name').value.trim()||'Unnamed',role:document.getElementById('c-role').value.trim(),color:document.getElementById('c-color').value,emoji:document.getElementById('c-emoji').value.trim(),trait:document.getElementById('c-trait').value.trim(),flaw:document.getElementById('c-flaw').value.trim(),arc:document.getElementById('c-arc').value.trim(),backstory:document.getElementById('c-backstory').value.trim(),notes:document.getElementById('c-notes').value.trim()};const id=document.getElementById('c-id').value;if(id){await sb(`characters?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});toast('Updated');}else{await sb('characters',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});toast('Character added');}closeModal('modal-char');await loadChars();renderChars();}
+async function deleteChar(){const id=document.getElementById('c-id').value;if(!id||!confirm('Delete this character?'))return;await sb(`characters?id=eq.${id}`,{method:'DELETE'});closeModal('modal-char');await loadChars();renderChars();toast('Deleted');}
+
+// ════════════════════════════════
+// TIMELINE
+// ════════════════════════════════
+async function loadEvents(){if(!bookId)return;const d=await sb(`timeline_events?book_id=eq.${bookId}&order=sort_order`);if(d)events=d;}
+function renderTimeline(){
+  const w=document.getElementById('timeline-wrap');
+  if(!events.length){w.innerHTML='<div class="empty-state"><i class="fas fa-stream"></i><p>No events yet</p><button class="btn btn-primary" onclick="openNewEvent()"><i class="fas fa-plus"></i> Add Event</button></div>';return;}
+  const parts=['pre','1','2','3','4','5'];
+  const pLabels={pre:'Pre-Story','1':'Part One','2':'Part Two','3':'Part Three','4':'Part Four','5':'Part Five'};
+  const pColors={pre:'var(--text3)','1':'var(--blue)','2':'var(--green)','3':'var(--amber)','4':'#fb923c','5':'var(--accent)'};
+  w.innerHTML=parts.map(p=>{const evs=events.filter(e=>e.part===p);if(!evs.length)return'';const col=pColors[p]||'var(--text2)';return`<div style="margin-bottom:22px"><span class="tl-part-label" style="background:${col}14;color:${col}">${pLabels[p]}</span><div class="tl-events">${evs.map(ev=>{const tags=(ev.tags||'').split(',').map(t=>t.trim()).filter(Boolean);return`<div class="tl-ev" onclick="openEditEvent('${ev.id}')"><div class="tl-dot" style="background:${col}"></div><div class="tl-ch">${esc(ev.chapter||'')}</div><div style="flex:1"><div class="tl-title">${esc(ev.title)}</div>${ev.description?`<div class="tl-desc">${esc(ev.description)}</div>`:''}<div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap">${tags.map(t=>`<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg3);color:var(--text2)">${esc(t)}</span>`).join('')}</div></div></div>`;}).join('')}</div></div>`;}).join('');
+}
+function openNewEvent(){['ev-ch','ev-title','ev-desc','ev-tags'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-order').value='999';document.getElementById('ev-part').value='1';document.getElementById('ev-id').value='';document.getElementById('ev-delete').style.display='none';document.getElementById('modal-ev-title').textContent='Add Event';openModal('modal-event');}
+function openEditEvent(id){const ev=events.find(e=>e.id===id);if(!ev)return;document.getElementById('modal-ev-title').textContent='Edit Event';document.getElementById('ev-ch').value=ev.chapter||'';document.getElementById('ev-part').value=ev.part||'1';document.getElementById('ev-title').value=ev.title||'';document.getElementById('ev-desc').value=ev.description||'';document.getElementById('ev-tags').value=ev.tags||'';document.getElementById('ev-order').value=ev.sort_order||999;document.getElementById('ev-id').value=id;document.getElementById('ev-delete').style.display='inline-flex';openModal('modal-event');}
+async function saveEvent(){const p={book_id:bookId,chapter:document.getElementById('ev-ch').value.trim(),part:document.getElementById('ev-part').value,title:document.getElementById('ev-title').value.trim()||'Event',description:document.getElementById('ev-desc').value.trim(),tags:document.getElementById('ev-tags').value.trim(),sort_order:parseInt(document.getElementById('ev-order').value)||999};const id=document.getElementById('ev-id').value;if(id){await sb(`timeline_events?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});}else{await sb('timeline_events',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});}closeModal('modal-event');await loadEvents();renderTimeline();toast(id?'Updated':'Event added');}
+async function deleteEvent(){const id=document.getElementById('ev-id').value;if(!id||!confirm('Delete?'))return;await sb(`timeline_events?id=eq.${id}`,{method:'DELETE'});closeModal('modal-event');await loadEvents();renderTimeline();toast('Deleted');}
+
+// ════════════════════════════════
+// TASKS
+// ════════════════════════════════
+async function loadTasks(){if(!bookId)return;const d=await sb(`tasks?book_id=eq.${bookId}&order=created_at.desc`);if(d)tasks=d;}
+function renderTasks(){['todo','progress','done'].forEach(s=>{const el=document.getElementById('col-'+s);const list=tasks.filter(t=>t.status===s);if(!list.length){el.innerHTML=`<div style="font-size:12px;color:var(--text3);padding:8px;text-align:center;border:1px dashed var(--border);border-radius:var(--radius-sm)">Empty</div>`;return;}el.innerHTML=list.map(t=>{const ch=chapters.find(c=>c.id===t.chapter_id);return`<div class="task-item" onclick="openEditTask('${t.id}')"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">${esc(t.title)}</div><div style="display:flex;gap:5px;flex-wrap:wrap">${ch?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--accent-glow);color:var(--accent)">Ch. ${ch.number}</span>`:''} ${t.author_name?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2)">${esc(t.author_name)}</span>`:''}</div>${t.notes?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${esc(t.notes.slice(0,70))}${t.notes.length>70?'…':''}</div>`:''}</div>`;}).join('');});}
+function openNewTask(){document.getElementById('modal-task-title').textContent='Add Task';['t-title','t-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('t-status').value='todo';document.getElementById('t-chapter').innerHTML='<option value="">— None —</option>'+chapters.map(c=>`<option value="${c.id}">Ch. ${c.number} — ${esc(c.title)}</option>`).join('');document.getElementById('t-id').value='';document.getElementById('t-delete').style.display='none';openModal('modal-task');}
+function openEditTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;document.getElementById('modal-task-title').textContent='Edit Task';document.getElementById('t-title').value=t.title||'';document.getElementById('t-notes').value=t.notes||'';document.getElementById('t-status').value=t.status||'todo';document.getElementById('t-chapter').innerHTML='<option value="">— None —</option>'+chapters.map(c=>`<option value="${c.id}"${c.id===t.chapter_id?' selected':''}>Ch. ${c.number} — ${esc(c.title)}</option>`).join('');document.getElementById('t-id').value=id;document.getElementById('t-delete').style.display='inline-flex';openModal('modal-task');}
+async function saveTask(){const p={book_id:bookId,title:document.getElementById('t-title').value.trim()||'Task',status:document.getElementById('t-status').value,chapter_id:document.getElementById('t-chapter').value||null,author_name:displayName,notes:document.getElementById('t-notes').value.trim()};const id=document.getElementById('t-id').value;if(id){await sb(`tasks?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});}else{await sb('tasks',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});}closeModal('modal-task');await loadTasks();renderTasks();toast(id?'Task updated':'Task added');}
+async function deleteTask(){const id=document.getElementById('t-id').value;if(!id||!confirm('Delete?'))return;await sb(`tasks?id=eq.${id}`,{method:'DELETE'});closeModal('modal-task');await loadTasks();renderTasks();toast('Deleted');}
+
+// ════════════════════════════════
+// MILESTONES
+// ════════════════════════════════
+async function loadMilestones(){if(!bookId)return;const d=await sb(`milestones?book_id=eq.${bookId}&order=target_date`);if(d)milestones=d;}
+function renderMs(){const el=document.getElementById('milestones-list');const total=milestones.length;const done=milestones.filter(m=>m.status==='complete').length;const next=milestones.filter(m=>m.status==='upcoming'||m.status==='inprogress').sort((a,b)=>new Date(a.target_date)-new Date(b.target_date))[0];document.getElementById('ms-total').textContent=total||'—';document.getElementById('ms-done').textContent=done||'—';document.getElementById('ms-next').textContent=next?new Date(next.target_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';if(!milestones.length){el.innerHTML='<div class="empty-state"><i class="fas fa-flag"></i><p>No milestones yet</p></div>';return;}const sC={upcoming:['var(--blue)','Upcoming'],inprogress:['var(--amber)','In Progress'],complete:['var(--green)','Complete'],missed:['var(--red)','Missed']};el.innerHTML=milestones.map(m=>{const[col,lbl]=sC[m.status]||['var(--text3)','—'];const dt=m.target_date?new Date(m.target_date+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'No date';const days=m.target_date?Math.ceil((new Date(m.target_date)-new Date())/(86400000)):null;return`<div class="ms-item" style="border-left-color:${col}" onclick="openEditMs('${m.id}')"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">${esc(m.title)}</div><div style="font-size:12px;color:var(--text3)">${dt}${days!==null&&m.status!=='complete'?` · <span style="color:${days<0?'var(--red)':days<14?'var(--amber)':'var(--text3)'}">${days<0?Math.abs(days)+' days overdue':days+' days left'}</span>`:''}</div>${m.notes?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${esc(m.notes)}</div>`:''}</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${col}14;color:${col};white-space:nowrap">${lbl}</span></div></div>`;}).join('');}
+function openNewMs(){['ms-title','ms-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ms-date').value='';document.getElementById('ms-wc').value='';document.getElementById('ms-status').value='upcoming';document.getElementById('ms-id').value='';document.getElementById('ms-delete').style.display='none';openModal('modal-ms');}
+function openEditMs(id){const m=milestones.find(x=>x.id===id);if(!m)return;document.getElementById('ms-title').value=m.title||'';document.getElementById('ms-date').value=m.target_date||'';document.getElementById('ms-wc').value=m.word_count_goal||'';document.getElementById('ms-notes').value=m.notes||'';document.getElementById('ms-status').value=m.status||'upcoming';document.getElementById('ms-id').value=id;document.getElementById('ms-delete').style.display='inline-flex';openModal('modal-ms');}
+async function saveMs(){const p={book_id:bookId,title:document.getElementById('ms-title').value.trim()||'Milestone',target_date:document.getElementById('ms-date').value||null,word_count_goal:parseInt(document.getElementById('ms-wc').value)||null,notes:document.getElementById('ms-notes').value.trim(),status:document.getElementById('ms-status').value};const id=document.getElementById('ms-id').value;if(id){await sb(`milestones?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});}else{await sb('milestones',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});}closeModal('modal-ms');await loadMilestones();renderMs();toast(id?'Updated':'Milestone added');}
+async function deleteMs(){const id=document.getElementById('ms-id').value;if(!id||!confirm('Delete?'))return;await sb(`milestones?id=eq.${id}`,{method:'DELETE'});closeModal('modal-ms');await loadMilestones();renderMs();toast('Deleted');}
+
+// ════════════════════════════════
+// SESSIONS
+// ════════════════════════════════
+async function loadSessions(){if(!bookId)return;const d=await sb(`writing_sessions?book_id=eq.${bookId}&order=session_date.desc&limit=100`);if(d)sessions=d;}
+function renderSessions(){
+  const total=sessions.length;const tWords=sessions.reduce((s,x)=>s+(x.words_written||0),0);const tMins=sessions.reduce((s,x)=>s+(x.duration_minutes||0),0);
+  document.getElementById('ss-total').textContent=total||'0';
+  document.getElementById('ss-words').textContent=tWords>=1000?(tWords/1000).toFixed(1)+'k':tWords||'0';
+  document.getElementById('ss-hours').textContent=tMins>=60?(tMins/60).toFixed(1)+'h':tMins+'m';
+  const dates=[...new Set(sessions.map(s=>s.session_date))].sort().reverse();let streak=0;let chk=new Date().toISOString().slice(0,10);for(const d of dates){if(d===chk){streak++;const dt=new Date(chk);dt.setDate(dt.getDate()-1);chk=dt.toISOString().slice(0,10);}else break;}
+  document.getElementById('ss-streak').textContent=streak+'🔥';
+  const days30=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days30.push(d.toISOString().slice(0,10));}
+  const byDate={};sessions.forEach(s=>{if(!byDate[s.session_date])byDate[s.session_date]=0;byDate[s.session_date]+=(s.words_written||0);});
+  const mx=Math.max(...Object.values(byDate),1);
+  document.getElementById('heatmap-wrap').innerHTML=`<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Last 30 Days</div><div class="heatmap">${days30.map(d=>{const w=byDate[d]||0;const op=w?Math.max(.18,w/mx):0;return`<div class="heat-cell" title="${d}: ${w} words" style="background:${w?`rgba(139,58,58,${op})`:'var(--bg3)'}"></div>`;}).join('')}</div>`;
+  const el=document.getElementById('sessions-list');if(!sessions.length){el.innerHTML='<div class="empty-state"><i class="fas fa-pen-nib"></i><p>No sessions yet</p></div>';return;}
+  el.innerHTML=sessions.slice(0,30).map(s=>{const ch=chapters.find(c=>c.id===s.chapter_id);return`<div class="sess-item" onclick="openEditSess('${s.id}')"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:13px;font-weight:500;color:var(--text)">${new Date(s.session_date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span>${ch?`<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:var(--accent-glow);color:var(--accent)">Ch. ${ch.number}</span>`:''}</div><div style="display:flex;gap:12px">${s.words_written?`<span style="font-size:12px;color:var(--green)"><i class="fas fa-pen" style="margin-right:3px"></i>${s.words_written.toLocaleString()} words</span>`:''} ${s.duration_minutes?`<span style="font-size:12px;color:var(--amber)"><i class="fas fa-clock" style="margin-right:3px"></i>${s.duration_minutes} min</span>`:''}</div>${s.notes?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${esc(s.notes.slice(0,80))}${s.notes.length>80?'…':''}</div>`:''}</div>`;}).join('');
+}
+function openNewSess(){document.getElementById('ss-date').value=new Date().toISOString().slice(0,10);['ss-dur','ss-words','ss-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ss-ch').innerHTML='<option value="">— General —</option>'+chapters.map(c=>`<option value="${c.id}">Ch. ${c.number} — ${esc(c.title)}</option>`).join('');document.getElementById('ss-id').value='';document.getElementById('ss-delete').style.display='none';openModal('modal-sess');}
+function openEditSess(id){const s=sessions.find(x=>x.id===id);if(!s)return;document.getElementById('ss-date').value=s.session_date||'';document.getElementById('ss-dur').value=s.duration_minutes||'';document.getElementById('ss-words').value=s.words_written||'';document.getElementById('ss-notes').value=s.notes||'';document.getElementById('ss-ch').innerHTML='<option value="">— General —</option>'+chapters.map(c=>`<option value="${c.id}"${c.id===s.chapter_id?' selected':''}>Ch. ${c.number} — ${esc(c.title)}</option>`).join('');document.getElementById('ss-id').value=id;document.getElementById('ss-delete').style.display='inline-flex';openModal('modal-sess');}
+async function saveSess(){const p={book_id:bookId,session_date:document.getElementById('ss-date').value||new Date().toISOString().slice(0,10),duration_minutes:parseInt(document.getElementById('ss-dur').value)||null,words_written:parseInt(document.getElementById('ss-words').value)||null,author_name:displayName,chapter_id:document.getElementById('ss-ch').value||null,notes:document.getElementById('ss-notes').value.trim()};const id=document.getElementById('ss-id').value;if(id){await sb(`writing_sessions?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});}else{await sb('writing_sessions',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});logActivity('Logged a writing session');}closeModal('modal-sess');await loadSessions();renderSessions();toast(id?'Updated':'Session logged');}
+async function deleteSess(){const id=document.getElementById('ss-id').value;if(!id||!confirm('Delete?'))return;await sb(`writing_sessions?id=eq.${id}`,{method:'DELETE'});closeModal('modal-sess');await loadSessions();renderSessions();toast('Deleted');}
+
+// ════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════
+async function loadActivity(){if(!bookId)return;const d=await sb(`activity?book_id=eq.${bookId}&order=created_at.desc&limit=20`);if(d)activity=d;}
+async function logActivity(action){if(!bookId)return;await sb('activity',{method:'POST',body:JSON.stringify({book_id:bookId,action,author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});await loadActivity();renderDashboard();}
+function renderDashboard(){
+  document.getElementById('s-chapters').textContent=chapters.length;
+  const wc=chapters.reduce((s,c)=>s+(c.word_count||0),0);
+  document.getElementById('s-words').textContent=wc>=1000?(wc/1000).toFixed(1)+'k':wc;
+  document.getElementById('s-ideas').textContent=ideas.length;
+  document.getElementById('s-docs').textContent=documents.length;
+  const goal=(currentBook&&currentBook.word_count_goal)||80000;
+  const pct=Math.min(100,Math.round(wc/goal*100));
+  document.getElementById('wc-label').textContent=`${wc.toLocaleString()} / ${goal.toLocaleString()}`;
+  document.getElementById('wc-bar').style.width=pct+'%';
+  document.getElementById('wc-pct').textContent=pct+'% complete';
+  const el=document.getElementById('activity-feed');
+  if(!activity.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px">No activity yet — start writing!</div>';return;}
+  el.innerHTML=activity.map(a=>`<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border)"><div style="width:24px;height:24px;border-radius:50%;background:var(--accent-glow);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0">${(a.author_name||'?').slice(0,2).toUpperCase()}</div><div style="flex:1;font-size:12px;color:var(--text2)"><strong style="color:var(--text)">${esc(a.author_name||'Someone')}</strong> ${esc(a.action)}</div><div style="font-size:10px;color:var(--text3);white-space:nowrap">${timeAgo(a.created_at)}</div></div>`).join('');
+}
+
+// ════════════════════════════════
+// SEARCH
+// ════════════════════════════════
+function openSearch(){document.getElementById('search-overlay').classList.add('open');setTimeout(()=>document.getElementById('search-input').focus(),50);}
+function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';document.getElementById('search-results').innerHTML='';}
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();}});
+let _st;function runSearch(){clearTimeout(_st);_st=setTimeout(()=>{
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  const el=document.getElementById('search-results');
+  if(q.length<2){el.innerHTML='<div style="padding:14px;font-size:13px;color:var(--text3);text-align:center">Type to search…</div>';return;}
+  const res=[];
+  chapters.forEach(c=>{if(c.title.toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q)||(c.body||'').toLowerCase().includes(q)){const s=(c.body||c.notes||'').toLowerCase().indexOf(q);const prev=s>=0?(c.body||c.notes||'').slice(Math.max(0,s-30),s+70):'';res.push({icon:'fa-list-ol',col:'var(--accent)',lbl:`Ch. ${c.number} — ${c.title}`,prev,fn:`openEditor('${c.id}');closeSearch()`});}});
+  ideas.forEach(i=>{if(i.content.toLowerCase().includes(q))res.push({icon:'fa-lightbulb',col:'var(--amber)',lbl:i.content.slice(0,60),prev:'',fn:`showTab('ideas',null);closeSearch()`});});
+  discussion.forEach(m=>{if(m.content.toLowerCase().includes(q))res.push({icon:'fa-comments',col:'var(--green)',lbl:`${m.author_name||'?'}: ${m.content.slice(0,55)}`,prev:'',fn:`showTab('discuss',null);closeSearch()`});});
+  documents.forEach(d=>{if(d.name.toLowerCase().includes(q))res.push({icon:'fa-file-alt',col:'var(--blue)',lbl:d.name,prev:'',fn:`viewDoc('${d.id}');closeSearch()`});});
+  if(!res.length){el.innerHTML='<div style="padding:14px;font-size:13px;color:var(--text3);text-align:center">No results</div>';return;}
+  el.innerHTML=res.slice(0,12).map(r=>`<div style="display:flex;gap:10px;padding:8px 12px;cursor:pointer;border-radius:6px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'" onclick="${r.fn}"><div style="width:26px;height:26px;border-radius:6px;background:${r.col}18;color:${r.col};display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${r.icon}" style="font-size:11px"></i></div><div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.lbl)}</div>${r.prev?`<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">…${esc(r.prev)}…</div>`:''}</div></div>`).join('');
+},200);}
+
+// ════════════════════════════════
+// READ MODE
+// ════════════════════════════════
+function openReadMode(){readChaps=[...chapters].sort((a,b)=>a.number-b.number).filter(c=>c.body&&c.body.trim());if(!readChaps.length){toast('No written chapters yet');return;}readIdx=0;document.getElementById('read-overlay').classList.add('open');renderReadChap();}
+function closeReadMode(){document.getElementById('read-overlay').classList.remove('open');}
+function renderReadChap(){const c=readChaps[readIdx];if(!c)return;document.getElementById('read-title').textContent=`Ch. ${c.number} — ${c.title}`;document.getElementById('read-indicator').textContent=`${readIdx+1} of ${readChaps.length}`;const sz=document.getElementById('read-size').value;const el=document.getElementById('read-content');el.style.fontSize=sz+'px';const wc=c.body?c.body.trim().split(/\s+/).length:0;el.innerHTML=`<div style="text-align:center;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid rgba(139,58,58,.12)"><div style="font-size:11px;color:#9a8878;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Chapter ${c.number}</div><div style="font-size:22px;font-weight:400;color:#2a1a0a;margin-bottom:5px">${esc(c.title)}</div>${c.pov?`<div style="font-size:12px;color:#9a8878;font-style:italic">${esc(c.pov)}'s POV</div>`:''}<div style="font-size:11px;color:#c0b0a0;margin-top:5px">${wc.toLocaleString()} words</div></div>${c.body.split('\n').filter(p=>p.trim()).map(p=>`<p style="margin:0 0 1.3em;text-indent:2em">${esc(p)}</p>`).join('')}<div style="text-align:center;margin-top:36px;color:#c0b0a0">* * *</div>`;document.getElementById('read-body').scrollTop=0;updateReadPct();}
+function updateReadSize(){const el=document.getElementById('read-content');if(el)el.style.fontSize=document.getElementById('read-size').value+'px';}
+function updateReadPct(){const b=document.getElementById('read-body');const pct=Math.round(b.scrollTop/(b.scrollHeight-b.clientHeight)*100)||0;document.getElementById('read-pct').textContent=pct+'% read';}
+function readPrev(){if(readIdx>0){readIdx--;renderReadChap();}}
+function readNext(){if(readIdx<readChaps.length-1){readIdx++;renderReadChap();}}
+document.addEventListener('keydown',e=>{if(!document.getElementById('read-overlay').classList.contains('open'))return;if(e.key==='ArrowRight')readNext();if(e.key==='ArrowLeft')readPrev();if(e.key==='Escape')closeReadMode();});
+
+// ════════════════════════════════
+// EXPORT
+// ════════════════════════════════
+function openExportModal(){document.getElementById('ex-title').value=currentBook?currentBook.title:'My Novel';document.getElementById('ex-author').value=displayName;const el=document.getElementById('ex-chapters');const sorted=[...chapters].sort((a,b)=>a.number-b.number);el.innerHTML=sorted.map(c=>`<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:${c.body&&c.body.trim()?'var(--text)':'var(--text3)'};cursor:pointer;padding:2px 0"><input type="checkbox" class="ex-cb" value="${c.id}" ${c.body&&c.body.trim()?'checked':''} style="accent-color:var(--accent)" onchange="exSummary()"/>Ch. ${c.number} — ${esc(c.title)}<span style="margin-left:auto;font-size:10px;color:var(--text3)">${c.word_count?c.word_count.toLocaleString()+' w':'no content'}</span></label>`).join('');exSummary();openModal('modal-export');}
+function exAll(){document.querySelectorAll('.ex-cb').forEach(cb=>cb.checked=true);exSummary();}
+function exNone(){document.querySelectorAll('.ex-cb').forEach(cb=>cb.checked=false);exSummary();}
+function exWritten(){document.querySelectorAll('.ex-cb').forEach(cb=>{const c=chapters.find(x=>x.id===cb.value);cb.checked=!!(c&&c.body&&c.body.trim());});exSummary();}
+function exSummary(){const sel=[...document.querySelectorAll('.ex-cb:checked')].map(cb=>chapters.find(c=>c.id===cb.value)).filter(Boolean);const wc=sel.reduce((s,c)=>s+(c.word_count||0),0);document.getElementById('ex-summary').textContent=`${sel.length} chapter${sel.length!==1?'s':''} · ${wc.toLocaleString()} words`;}
+function runExport(){
+  const title=document.getElementById('ex-title').value.trim()||'My Novel';
+  const author=document.getElementById('ex-author').value.trim();
+  const fmt=document.getElementById('ex-format').value;
+  const sel=[...document.querySelectorAll('.ex-cb:checked')].map(cb=>chapters.find(c=>c.id===cb.value)).filter(Boolean).sort((a,b)=>a.number-b.number);
+  if(!sel.length){toast('Select at least one chapter');return;}
+  const wc=sel.reduce((s,c)=>s+(c.word_count||0),0);
+  if(fmt==='pdf'){
+    const win=window.open('','_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(title)}</title><style>body{max-width:680px;margin:60px auto;font-family:Georgia,serif;color:#2a1a0a}@media print{.np{display:none}}</style></head><body><div class="np" style="background:#f5f0e8;padding:12px 16px;margin-bottom:20px;border-radius:6px;font-family:sans-serif;font-size:13px;color:#5a4a38"><strong>Ready to save as PDF</strong> — press Cmd+P → Save as PDF<button onclick="window.print()" style="margin-left:12px;padding:5px 12px;background:#8B3A3A;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">Print / Save PDF</button></div><div style="text-align:center;margin-bottom:56px;padding-bottom:28px;border-bottom:1px solid #e0d5c8"><h1 style="font-size:28px;font-weight:400;margin:0 0 8px">${esc(title)}</h1>${author?`<div style="font-size:15px;color:#9a8878;font-style:italic">by ${esc(author)}</div>`:''}<div style="font-size:12px;color:#c0b0a0;margin-top:9px">${wc.toLocaleString()} words · ${sel.length} chapters</div></div>${sel.map(c=>`<div style="margin-bottom:48px;page-break-after:always"><div style="text-align:center;margin-bottom:24px"><div style="font-size:11px;color:#9a8878;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Chapter ${c.number}</div><h2 style="font-size:20px;font-weight:400;margin:0">${esc(c.title)}</h2>${c.pov?`<div style="font-size:11px;color:#9a8878;font-style:italic;margin-top:3px">${esc(c.pov)}'s POV</div>`:''}</div><div style="font-size:16px;line-height:1.9;font-family:Georgia,serif">${(c.body||'').split('\n').filter(p=>p.trim()).map(p=>`<p style="margin:0 0 1.2em;text-indent:2em">${esc(p)}</p>`).join('')}</div><div style="text-align:center;margin-top:30px;color:#c0b0a0">* * *</div></div>`).join('')}</body></html>`);
+    win.document.close();closeModal('modal-export');toast('PDF ready — Cmd/Ctrl+P to save');return;
+  }
+  let out='';
+  if(fmt==='txt'){out=`${title.toUpperCase()}\n${author?'by '+author+'\n':''}\n${wc.toLocaleString()} words\n\n${'─'.repeat(48)}\n\n`;sel.forEach(c=>{out+=`CHAPTER ${c.number}: ${c.title.toUpperCase()}\n${c.pov?'['+c.pov+"'s POV]\n":''}\n${c.body||'[No content]'}\n\n* * *\n\n`;});dlFile(title.replace(/\s+/g,'_')+'.txt',out,'text/plain');}
+  else if(fmt==='md'){out=`# ${title}\n${author?`*by ${author}*\n\n`:'\n'}*${wc.toLocaleString()} words · ${sel.length} chapters*\n\n---\n\n`;sel.forEach(c=>{out+=`## Chapter ${c.number}: ${c.title}\n\n${c.pov?`*${c.pov}'s POV*\n\n`:''}${c.body||'*No content.*'}\n\n---\n\n`;});dlFile(title.replace(/\s+/g,'_')+'.md',out,'text/markdown');}
+  else if(fmt==='rtf'){let rtf=`{\\rtf1\\ansi\\deff0\n{\\fonttbl{\\f0 Georgia;}{\\f1 Arial;}}\n\\paperw12240\\paperh15840\\margl1800\\margr1800\\margt1440\\margb1440\n\\pard\\qc\\f0\\fs48\\b ${title.replace(/[\\{}]/g,'')}\\b0\\par\n`;if(author)rtf+=`\\f1\\fs24\\i by ${author.replace(/[\\{}]/g,'')}\\i0\\par\n`;rtf+=`\\f1\\fs20 ${wc.toLocaleString()} words\\par\\par\n`;sel.forEach(c=>{rtf+=`\\page\\pard\\qc\\f1\\fs20 CHAPTER ${c.number}\\par\n\\f0\\fs32\\b ${(c.title||'').replace(/[\\{}]/g,'')}\\b0\\par\n${c.pov?`\\f1\\fs20\\i ${c.pov}'s POV\\i0\\par\n`:''}\n\\par\n`;(c.body||'').split('\n').filter(p=>p.trim()).forEach(p=>{rtf+=`\\pard\\fi360\\f0\\fs24 ${p.replace(/[\\{}]/g,'')}\\par\n`;});rtf+=`\\pard\\qc\\f0 * * *\\par\n`;});rtf+='}';dlFile(title.replace(/\s+/g,'_')+'.rtf',rtf,'application/rtf');}
+  else{const ch=sel.map(c=>`<div style="margin-bottom:48px;page-break-after:always"><div style="text-align:center;margin-bottom:24px"><div style="font-size:11px;color:#9a8878;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Chapter ${c.number}</div><h2 style="font-size:20px;font-weight:400">${esc(c.title)}</h2></div><div style="font-size:16px;line-height:1.9;font-family:Georgia,serif">${(c.body||'').split('\n').filter(p=>p.trim()).map(p=>`<p style="margin:0 0 1.2em;text-indent:2em">${esc(p)}</p>`).join('')}</div></div>`).join('');const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(title)}</title><style>body{max-width:680px;margin:60px auto;font-family:Georgia,serif}</style></head><body><div style="text-align:center;margin-bottom:56px"><h1 style="font-size:28px;font-weight:400">${esc(title)}</h1>${author?`<div style="color:#9a8878;font-style:italic">by ${esc(author)}</div>`:''}</div>${ch}</body></html>`;dlFile(title.replace(/\s+/g,'_')+'.html',html,'text/html');}
+  closeModal('modal-export');toast(`Exported ${sel.length} chapters`);
+}
+function dlFile(name,content,mime){const b=new Blob([content],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
+
+// ════════════════════════════════
+// REALTIME (polling)
+// ════════════════════════════════
+function setupRealtime(){setInterval(async()=>{if(!bookId)return;await Promise.all([loadChapters(),loadDiscussion(),loadActivity()].map(p=>p.catch(()=>{})));if(currentTab==='discuss')renderDiscussion();else if(currentTab==='dashboard')renderDashboard();},20000);}
+
+// ════════════════════════════════
+// SIDEBAR
+// ════════════════════════════════
+let sbCollapsed=false;
+function toggleSidebar(){sbCollapsed=!sbCollapsed;const s=document.getElementById('sidebar');const ic=document.getElementById('collapse-icon');s.classList.toggle('collapsed',sbCollapsed);if(ic)ic.className=sbCollapsed?'fas fa-chevron-right':'fas fa-chevron-left';try{localStorage.setItem('wr_sb',sbCollapsed);}catch(e){}}
+function toggleMobileMenu(){const s=document.getElementById('sidebar');const o=document.getElementById('mobile-overlay');const open=s.classList.contains('mobile-open');s.classList.toggle('mobile-open',!open);o.classList.toggle('active',!open);}
+function closeMobileMenu(){document.getElementById('sidebar').classList.remove('mobile-open');document.getElementById('mobile-overlay').classList.remove('active');}
+function loadSidebarState(){try{if(localStorage.getItem('wr_sb')==='true'){sbCollapsed=true;document.getElementById('sidebar').classList.add('collapsed');const ic=document.getElementById('collapse-icon');if(ic)ic.className='fas fa-chevron-right';}}catch(e){}}
+
+// ════════════════════════════════
+// MODALS
+// ════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-bg.open').forEach(m=>m.classList.remove('open'));closeViewer();closeReadMode();closeSearch();}});
+
+// ════════════════════════════════
+// THEME SYSTEM
+// ════════════════════════════════
+const THEMES={
+  'Cream & Burgundy':{accent:'#8B3A3A',accent2:'#6b2a2a',glow:'rgba(139,58,58,0.12)',light:{bg:'#faf7f2',bg2:'#ffffff',bg3:'#f0ebe3',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.14)',t:'#1a1008',t2:'#5a4a38',t3:'#9a8878'},dark:{bg:'#120a08',bg2:'#1c120f',bg3:'#261a16',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#f0e8e0',t2:'#b09080',t3:'#6a5048'}},
+  'Sage Green':{accent:'#5a8a6a',accent2:'#3d6b50',glow:'rgba(90,138,106,0.14)',light:{bg:'#f5f4f0',bg2:'#ffffff',bg3:'#ede9e3',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.14)',t:'#1a1a1a',t2:'#5a5a5a',t3:'#9a9a9a'},dark:{bg:'#0e120f',bg2:'#141a15',bg3:'#1b251c',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#e8f0ea',t2:'#8aa890',t3:'#4a6650'}},
+  'Ocean Blue':{accent:'#2e7ab8',accent2:'#1c5e96',glow:'rgba(46,122,184,0.14)',light:{bg:'#f3f6fa',bg2:'#ffffff',bg3:'#e8eef5',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.13)',t:'#0a1525',t2:'#3a5070',t3:'#7090b0'},dark:{bg:'#080e18',bg2:'#0e1520',bg3:'#141e2c',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#d8e8f8',t2:'#6090b8',t3:'#304860'}},
+  'Warm Amber':{accent:'#c8860a',accent2:'#a06a06',glow:'rgba(200,134,10,0.14)',light:{bg:'#faf8f3',bg2:'#ffffff',bg3:'#f2ede2',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.13)',t:'#1a1608',t2:'#6b5e3a',t3:'#a89470'},dark:{bg:'#131008',bg2:'#1c1608',bg3:'#251e0a',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#f0e8d0',t2:'#a89060',t3:'#6a5830'}},
+  'Rose':{accent:'#b84060',accent2:'#942848',glow:'rgba(184,64,96,0.14)',light:{bg:'#faf4f5',bg2:'#ffffff',bg3:'#f5e8eb',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.13)',t:'#1a080c',t2:'#6a3040',t3:'#b07080'},dark:{bg:'#130608',bg2:'#1c0a0e',bg3:'#260e14',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#f8d8e0',t2:'#b87080',t3:'#6a3040'}},
+  'Forest':{accent:'#3a7a4a',accent2:'#285c38',glow:'rgba(58,122,74,0.14)',light:{bg:'#f3f6f2',bg2:'#ffffff',bg3:'#e6ede4',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.13)',t:'#081408',t2:'#3a5038',t3:'#6a8868'},dark:{bg:'#060e06',bg2:'#0c140c',bg3:'#101c10',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#d0e8d0',t2:'#60a060',t3:'#305030'}},
+  'Slate':{accent:'#5a6a8a',accent2:'#3d506e',glow:'rgba(90,106,138,0.14)',light:{bg:'#f4f5f7',bg2:'#ffffff',bg3:'#e8eaee',b:'rgba(0,0,0,0.08)',b2:'rgba(0,0,0,0.13)',t:'#0d1020',t2:'#4a5060',t3:'#8090a8'},dark:{bg:'#0a0c12',bg2:'#10131c',bg3:'#161a26',b:'rgba(255,255,255,0.07)',b2:'rgba(255,255,255,0.12)',t:'#d8dce8',t2:'#7080a0',t3:'#3a4460'}},
+  'Monochrome':{accent:'#404040',accent2:'#282828',glow:'rgba(64,64,64,0.14)',light:{bg:'#f5f5f5',bg2:'#ffffff',bg3:'#ebebeb',b:'rgba(0,0,0,0.09)',b2:'rgba(0,0,0,0.15)',t:'#111111',t2:'#555555',t3:'#999999'},dark:{bg:'#0a0a0a',bg2:'#141414',bg3:'#1e1e1e',b:'rgba(255,255,255,0.08)',b2:'rgba(255,255,255,0.13)',t:'#eeeeee',t2:'#888888',t3:'#444444'}}
+};
+let tMode='light',tPalette='Cream & Burgundy',tSize='14';
+function applyTheme(name,mode,accentOvr){
+  const p=THEMES[name]||THEMES['Cream & Burgundy'];const mv=p[mode]||p.light;
+  const accent=accentOvr||p.accent;const accent2=accentOvr?shadeCol(accentOvr,-20):p.accent2;
+  const rgb=hexRgb(accent);const glow=rgb?`rgba(${rgb.r},${rgb.g},${rgb.b},0.14)`:p.glow;
+  const r=document.documentElement;
+  r.style.setProperty('--bg',mv.bg);r.style.setProperty('--bg2',mv.bg2);r.style.setProperty('--bg3',mv.bg3);
+  r.style.setProperty('--border',mv.b);r.style.setProperty('--border2',mv.b2);
+  r.style.setProperty('--text',mv.t);r.style.setProperty('--text2',mv.t2);r.style.setProperty('--text3',mv.t3);
+  r.style.setProperty('--accent',accent);r.style.setProperty('--accent2',accent2);r.style.setProperty('--accent-glow',glow);
+  if(mode==='light'){r.style.setProperty('--green','#2a8050');r.style.setProperty('--amber','#b87800');r.style.setProperty('--red','#b83030');r.style.setProperty('--blue','#2060a0');}
+  else{r.style.setProperty('--green','#34d399');r.style.setProperty('--amber','#fbbf24');r.style.setProperty('--red','#f87171');r.style.setProperty('--blue','#60a5fa');}
+  document.body.style.fontSize=tSize+'px';updateThemeUI(name,mode);saveTheme(name,mode,accentOvr);
+}
+function setMode(m){tMode=m;applyTheme(tPalette,m);}
+function setPalette(n){tPalette=n;applyTheme(n,tMode);renderPaletteGrid();}
+function setFontSize(s){tSize=s;document.body.style.fontSize=s+'px';document.querySelectorAll('.t-sz').forEach(b=>{b.style.background=b.dataset.sz===s?'var(--accent)':'transparent';b.style.color=b.dataset.sz===s?'#fff':'var(--text)';b.style.borderColor=b.dataset.sz===s?'var(--accent)':'var(--border2)';});try{const p=JSON.parse(localStorage.getItem('wr_theme')||'{}');p.fontSize=s;localStorage.setItem('wr_theme',JSON.stringify(p));}catch(e){}}
+function applyCustomAccent(){applyTheme(tPalette,tMode,document.getElementById('custom-accent').value);}
+function updateThemeUI(name,mode){['light','dark'].forEach(m=>{const b=document.getElementById('mode-'+m);if(b){b.style.borderColor=mode===m?'var(--accent)':'var(--border2)';b.style.background=mode===m?'var(--accent-glow)':'transparent';}});const badge=document.getElementById('theme-badge');if(badge)badge.textContent=mode==='dark'?'Dark':'Light';document.querySelectorAll('.palette-btn').forEach(b=>{const a=b.dataset.name===name;b.style.borderColor=a?'var(--accent)':'transparent';b.style.transform=a?'scale(1.03)':'scale(1)';});}
+function renderPaletteGrid(){const g=document.getElementById('palette-grid');if(!g)return;g.innerHTML=Object.entries(THEMES).map(([name,p])=>{const a=name===tPalette;const sw=p[tMode]||p.light;return`<button class="palette-btn" data-name="${name}" onclick="setPalette('${name}')" style="padding:0;border-radius:10px;border:2px solid ${a?p.accent:'transparent'};cursor:pointer;overflow:hidden;box-shadow:${a?`0 0 0 2px ${p.accent}44`:'0 1px 4px rgba(0,0,0,.1)'};transition:all .15s;transform:${a?'scale(1.03)':'scale(1)'}"><div style="display:flex;height:56px"><div style="width:24px;background:${sw.bg2};border-right:1px solid ${sw.b2};display:flex;flex-direction:column;padding:4px;gap:2px;flex-shrink:0"><div style="width:16px;height:3px;border-radius:2px;background:${p.accent}"></div><div style="width:12px;height:2px;border-radius:2px;background:${sw.t3}"></div><div style="width:14px;height:2px;border-radius:2px;background:${sw.t3}"></div></div><div style="flex:1;background:${sw.bg};padding:5px 6px;display:flex;flex-direction:column;gap:3px"><div style="display:flex;gap:2px"><div style="flex:1;height:8px;border-radius:2px;background:${sw.bg2}"></div><div style="width:16px;height:8px;border-radius:2px;background:${p.accent}"></div></div><div style="height:6px;border-radius:2px;background:${sw.bg2}"></div><div style="height:5px;border-radius:2px;background:${p.accent}22;width:70%"></div></div></div><div style="padding:5px 8px;background:${sw.bg2};display:flex;align-items:center;gap:4px;border-top:1px solid ${sw.b}"><div style="width:7px;height:7px;border-radius:50%;background:${p.accent};flex-shrink:0"></div><div style="font-size:11px;font-weight:${a?'600':'400'};color:${sw.t}">${name}</div>${a?`<div style="margin-left:auto;font-size:9px;color:${p.accent};font-weight:700">✓</div>`:''}</div></button>`;}).join('');}
+function openThemePanel(){renderPaletteGrid();updateThemeUI(tPalette,tMode);document.querySelectorAll('.t-sz').forEach(b=>{b.style.background=b.dataset.sz===tSize?'var(--accent)':'transparent';b.style.color=b.dataset.sz===tSize?'#fff':'var(--text)';b.style.borderColor=b.dataset.sz===tSize?'var(--accent)':'var(--border2)';});document.getElementById('theme-panel').classList.add('open');}
+function closeThemePanel(){document.getElementById('theme-panel').classList.remove('open');}
+function saveTheme(name,mode,accentOvr){try{localStorage.setItem('wr_theme',JSON.stringify({palette:name,mode,accentOvr:accentOvr||null,fontSize:tSize}));}catch(e){}}
+function loadThemePrefs(){try{const s=localStorage.getItem('wr_theme');if(s){const p=JSON.parse(s);tPalette=p.palette||'Cream & Burgundy';tMode=p.mode||'light';tSize=p.fontSize||'14';applyTheme(tPalette,tMode,p.accentOvr||null);}else applyTheme('Cream & Burgundy','light');}catch(e){applyTheme('Cream & Burgundy','light');}}
+function hexRgb(hex){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null;}
+function shadeCol(hex,pct){const n=parseInt(hex.slice(1),16);const a=Math.round(2.55*pct);const r=Math.min(255,Math.max(0,(n>>16)+a));const g=Math.min(255,Math.max(0,((n>>8)&0xFF)+a));const b=Math.min(255,Math.max(0,(n&0xFF)+a));return'#'+(0x1000000+(r*0x10000)+(g*0x100)+b).toString(16).slice(1);}
+
+// ════════════════════════════════
+// HELPERS
+// ════════════════════════════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function timeAgo(iso){const d=new Date(iso),n=new Date(),s=Math.round((n-d)/1000);if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';if(s<604800)return Math.floor(s/86400)+'d ago';return d.toLocaleDateString();}
+function fIcon(t){if(!t)return'📁';if(t.includes('pdf'))return'📄';if(t.includes('word')||String(t).toLowerCase().includes('docx'))return'📝';if(t.includes('text'))return'📃';return'📁';}
+function fmtBytes(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return(b/Math.pow(k,i)).toFixed(1)+' '+s[i];}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
+let _toast;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_toast);_toast=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ════════════════════════════════
+// BOOT
+// ════════════════════════════════
+boot();
+</script>
+</body>
+</html>
