@@ -1752,15 +1752,10 @@ ${docText}`;
     let clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
     const start=clean.indexOf('{');const end=clean.lastIndexOf('}');
     if(start!==-1&&end>start)clean=clean.slice(start,end+1);
-    // Remove invalid JSON escape sequences (backslash followed by anything not valid)
-    // Valid: \" \\ \/ \b \f \n \r \t \uXXXX
-    clean=clean.replace(/\\([^"\\/bfnrtu0-9])/g,'$1');
-    try{bdAnalysisResult=JSON.parse(clean);}
-    catch(parseErr){
-      // Second pass: strip all remaining lone backslashes
-      const fixed=clean.replace(/\\(?!["\\/bfnrtu])/g,'');
-      bdAnalysisResult=JSON.parse(fixed);
-    }
+    // Walk character-by-character and fix any invalid escape sequences
+    function fixEscapes(s){let r='',i=0;while(i<s.length){if(s[i]==='\\'&&i+1<s.length){const n=s[i+1];if(['"','\\','/','b','f','n','r','t'].includes(n)){r+=s[i]+n;i+=2;}else if(n==='u'&&/[0-9a-fA-F]{4}/.test(s.slice(i+2,i+6))){r+=s[i]+n+s.slice(i+2,i+6);i+=6;}else{r+=n;i+=2;}}else{r+=s[i];i++;}}return r;}
+    clean=fixEscapes(clean);
+    bdAnalysisResult=JSON.parse(clean);
     document.getElementById('bd-loading').style.display='none';
     document.getElementById('bd-analyze-btn').style.display='';
     renderBdResults(bdAnalysisResult);
