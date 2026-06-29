@@ -1749,15 +1749,16 @@ ${docText}`;
     const data=await response.json();
     if(data.error)throw new Error(data.error);
     const raw=data.content[0].text.trim();
-    // Strip markdown fences if present
     let clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
-    // Extract just the outermost JSON object in case there's surrounding text
     const start=clean.indexOf('{');const end=clean.lastIndexOf('}');
     if(start!==-1&&end>start)clean=clean.slice(start,end+1);
+    // Remove invalid JSON escape sequences (backslash followed by anything not valid)
+    // Valid: \" \\ \/ \b \f \n \r \t \uXXXX
+    clean=clean.replace(/\\([^"\\/bfnrtu0-9])/g,'$1');
     try{bdAnalysisResult=JSON.parse(clean);}
     catch(parseErr){
-      // Last resort: try to fix common issues (unescaped apostrophes in values)
-      const fixed=clean.replace(/:\s*"([^"]*)"/g,(m,v)=>':"'+v.replace(/'/g,"\\'").replace(/\n/g,' ').replace(/\t/g,' ')+'"');
+      // Second pass: strip all remaining lone backslashes
+      const fixed=clean.replace(/\\(?!["\\/bfnrtu])/g,'');
       bdAnalysisResult=JSON.parse(fixed);
     }
     document.getElementById('bd-loading').style.display='none';
