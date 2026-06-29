@@ -1718,7 +1718,25 @@ async function runBdAnalysis(){
   if(wantTl)spec.push('"timeline_events":[{"title":"...","description":"what happens","chapter":"Ch. X or estimate","part":"1","sort_order":10}]');
   if(wantId)spec.push('"ideas":[{"category":"plot or character or theme or world or misc","content":"the idea"}]');
   spec.push('"analysis_notes":"2-3 sentences of key observations"');
-  const prompt=`You are a literary analyst helping set up a novel development workspace.\n\nAnalyze the following document and extract structured information. The document may be a manuscript, synopsis, outline, chapter, or rough notes.\n\nRespond ONLY with valid JSON. No preamble, no explanation, no markdown code fences. Use exactly this structure:\n\n{\n  ${spec.join(',\n  ')}\n}\n\nOnly include characters you are confident about. For timeline, focus on clear plot events in narrative order. Keep ideas focused and useful.\n\nDocument:\n${docText}`;
+  const prompt=`You are a literary analyst extracting structured data from a document for a novel workspace app.
+
+CRITICAL RULES:
+- Respond ONLY with a single valid JSON object. Nothing before or after it.
+- No markdown, no code fences, no explanation.
+- All string values must be your own concise summaries — do NOT copy raw text from the document.
+- Keep every string value under 150 characters.
+- Escape any apostrophes or special characters properly.
+- If a field is unknown, use an empty string, not null.
+
+Use this exact JSON structure:
+{
+  ${spec.join(',\n  ')}
+}
+
+Only include characters with a clear name and meaningful presence. For timeline, include only distinct plot events in order.
+
+Document to analyze:
+${docText}`;
   document.getElementById('bd-analyze-btn').style.display='none';
   document.getElementById('bd-loading').style.display='block';
   document.getElementById('bd-results').style.display='none';
@@ -1731,8 +1749,17 @@ async function runBdAnalysis(){
     const data=await response.json();
     if(data.error)throw new Error(data.error);
     const raw=data.content[0].text.trim();
-    const clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
-    bdAnalysisResult=JSON.parse(clean);
+    // Strip markdown fences if present
+    let clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
+    // Extract just the outermost JSON object in case there's surrounding text
+    const start=clean.indexOf('{');const end=clean.lastIndexOf('}');
+    if(start!==-1&&end>start)clean=clean.slice(start,end+1);
+    try{bdAnalysisResult=JSON.parse(clean);}
+    catch(parseErr){
+      // Last resort: try to fix common issues (unescaped apostrophes in values)
+      const fixed=clean.replace(/:\s*"([^"]*)"/g,(m,v)=>':"'+v.replace(/'/g,"\\'").replace(/\n/g,' ').replace(/\t/g,' ')+'"');
+      bdAnalysisResult=JSON.parse(fixed);
+    }
     document.getElementById('bd-loading').style.display='none';
     document.getElementById('bd-analyze-btn').style.display='';
     renderBdResults(bdAnalysisResult);
