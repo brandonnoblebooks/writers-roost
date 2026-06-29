@@ -1725,7 +1725,7 @@ async function runBdAnalysis(){
   const msgs=['Reading document…','Identifying characters…','Mapping the plot…','Extracting themes and ideas…','Finalizing analysis…'];
   let mi=0;const mt=setInterval(()=>{mi=(mi+1)%msgs.length;const el=document.getElementById('bd-loading-msg');if(el)el.textContent=msgs[mi];},3000);
   try{
-    const response=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+    const response=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
     clearInterval(mt);
     if(!response.ok){const et=await response.text();throw new Error('Function error '+response.status+': '+et.slice(0,200));}
     const data=await response.json();
