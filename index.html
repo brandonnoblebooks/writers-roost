@@ -361,6 +361,8 @@ select.form-input option{background:var(--bg2)}
       <div class="nav-section">Writing</div>
       <div class="nav-item" onclick="showTab('tasks',this)"><i class="fas fa-tasks"></i><span class="nav-label">Tasks</span></div>
       <div class="nav-item" onclick="showTab('milestones',this)"><i class="fas fa-flag"></i><span class="nav-label">Milestones</span></div>
+      <div class="nav-section">AI</div>
+      <div class="nav-item" onclick="showTab('bookdev',this)"><i class="fas fa-robot"></i><span class="nav-label">Book Dev</span></div>
       <div class="nav-section">Tools</div>
       <div class="nav-item" onclick="openSearch()"><i class="fas fa-search"></i><span class="nav-label">Search</span></div>
       <div class="nav-item" onclick="showTab('sessions',this)"><i class="fas fa-pen-nib"></i><span class="nav-label">Sessions</span></div>
@@ -504,6 +506,122 @@ select.form-input option{background:var(--bg2)}
         </div>
         <div id="heatmap-wrap" style="margin-bottom:14px"></div>
         <div id="sessions-list"></div>
+      </div>
+
+      <!-- BOOK DEVELOPMENT -->
+      <div id="tab-bookdev" class="tab">
+        <!-- API Key Setup -->
+        <div id="bd-setup" style="display:none;background:var(--bg2);border:1px solid var(--amber);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <i class="fas fa-key" style="color:var(--amber)"></i>
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Anthropic API Key Required</span>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Enter your Anthropic API key to enable AI analysis. It's stored locally in your browser and never sent anywhere except directly to Anthropic.</p>
+          <div style="display:flex;gap:8px">
+            <input type="password" id="bd-key-input" class="form-input" placeholder="sk-ant-api03-..." style="flex:1;font-size:12px"/>
+            <button class="btn btn-primary btn-sm" onclick="saveBdKey()">Save Key</button>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text3)">Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a> → API Keys</div>
+        </div>
+
+        <!-- Key saved indicator -->
+        <div id="bd-key-set" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;gap:8px">
+          <i class="fas fa-check-circle" style="color:var(--green)"></i>
+          <span style="font-size:12px;color:var(--text2);flex:1">API key set</span>
+          <button onclick="clearBdKey()" class="btn btn-sm" style="font-size:11px;color:var(--red);border-color:var(--red)">Remove</button>
+        </div>
+
+        <!-- Upload area -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;font-family:Georgia,serif">Book Development</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Upload a manuscript, synopsis, outline, or notes — Claude will analyze it and offer to populate your book's characters, timeline, and ideas.</div>
+
+          <div id="bd-upload-zone" class="upload-zone" onclick="document.getElementById('bd-file-input').click()" style="margin-bottom:10px">
+            <input type="file" id="bd-file-input" style="display:none" accept=".pdf,.docx,.doc,.txt,.md" onchange="bdHandleFile(event)"/>
+            <i class="fas fa-file-search" style="font-size:22px;color:var(--accent);display:block;margin-bottom:7px"></i>
+            <p style="font-size:13px;color:var(--text2)">Click to upload a document</p>
+            <small style="color:var(--text3);font-size:11px">PDF, DOCX, TXT, MD — or paste text below</small>
+          </div>
+
+          <div style="margin-bottom:8px;font-size:11px;color:var(--text3);text-align:center">— or paste text directly —</div>
+          <textarea id="bd-text-input" class="form-input" placeholder="Paste your synopsis, outline, chapter, or notes here…" style="min-height:120px;font-size:13px" oninput="bdCheckReady()"></textarea>
+          <div id="bd-file-name" style="display:none;font-size:12px;color:var(--green);margin-top:6px;display:flex;align-items:center;gap:6px">
+            <i class="fas fa-file-check"></i><span id="bd-fname"></span>
+            <button onclick="bdClearFile()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;margin-left:auto"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">What to extract</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="bd-opt-overview" checked style="accent-color:var(--accent)"/> Book overview (title, genre, description)</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="bd-opt-chars" checked style="accent-color:var(--accent)"/> Characters</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="bd-opt-timeline" checked style="accent-color:var(--accent)"/> Timeline events</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="bd-opt-ideas" checked style="accent-color:var(--accent)"/> Ideas &amp; themes</label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="bd-analyze-btn" onclick="runBdAnalysis()" style="width:100%;justify-content:center;padding:10px;font-size:14px" disabled>
+          <i class="fas fa-robot"></i> Analyze Document
+        </button>
+
+        <!-- Loading state -->
+        <div id="bd-loading" style="display:none;text-align:center;padding:32px 20px">
+          <div class="spinner" style="width:28px;height:28px;margin:0 auto 14px;border-width:3px"></div>
+          <div id="bd-loading-msg" style="font-size:14px;color:var(--text2)">Reading document…</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:5px">This usually takes 10–20 seconds</div>
+        </div>
+
+        <!-- Results -->
+        <div id="bd-results" style="display:none;margin-top:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-size:15px;font-weight:600;color:var(--text);font-family:Georgia,serif">Analysis Results</div>
+            <button onclick="bdClearResults()" class="btn btn-sm" style="font-size:11px">Clear</button>
+          </div>
+
+          <!-- Analysis notes -->
+          <div id="bd-notes-section" style="display:none;background:var(--accent-glow);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:6px"><i class="fas fa-comment-alt" style="margin-right:5px"></i>Claude's Notes</div>
+            <div id="bd-notes-text" style="font-size:13px;color:var(--text2);line-height:1.6"></div>
+          </div>
+
+          <!-- Book Overview -->
+          <div id="bd-overview-section" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px">
+            <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px"><i class="fas fa-book" style="color:var(--accent)"></i> Book Overview</div>
+              <button class="btn btn-sm btn-primary" onclick="bdImportOverview()" style="font-size:11px;padding:3px 10px">Import to Book</button>
+            </div>
+            <div id="bd-overview-body" style="padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6"></div>
+          </div>
+
+          <!-- Characters -->
+          <div id="bd-chars-section" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px">
+            <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px"><i class="fas fa-users" style="color:var(--green)"></i> Characters <span id="bd-chars-count" style="font-size:11px;padding:1px 7px;border-radius:10px;background:var(--bg3);color:var(--text3);margin-left:4px"></span></div>
+              <button class="btn btn-sm btn-primary" onclick="bdImportAllChars()" style="font-size:11px;padding:3px 10px">Import All</button>
+            </div>
+            <div id="bd-chars-list" style="padding:10px 12px;display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+
+          <!-- Timeline -->
+          <div id="bd-timeline-section" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px">
+            <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px"><i class="fas fa-stream" style="color:var(--blue)"></i> Timeline Events <span id="bd-tl-count" style="font-size:11px;padding:1px 7px;border-radius:10px;background:var(--bg3);color:var(--text3);margin-left:4px"></span></div>
+              <button class="btn btn-sm btn-primary" onclick="bdImportAllEvents()" style="font-size:11px;padding:3px 10px">Import All</button>
+            </div>
+            <div id="bd-tl-list" style="padding:10px 12px;display:flex;flex-direction:column;gap:7px"></div>
+          </div>
+
+          <!-- Ideas -->
+          <div id="bd-ideas-section" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px">
+            <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px"><i class="fas fa-lightbulb" style="color:var(--amber)"></i> Ideas &amp; Themes <span id="bd-ideas-count" style="font-size:11px;padding:1px 7px;border-radius:10px;background:var(--bg3);color:var(--text3);margin-left:4px"></span></div>
+              <button class="btn btn-sm btn-primary" onclick="bdImportAllIdeas()" style="font-size:11px;padding:3px 10px">Import All</button>
+            </div>
+            <div id="bd-ideas-list" style="padding:10px 12px;display:flex;flex-direction:column;gap:7px"></div>
+          </div>
+        </div>
       </div>
 
     </div><!-- /content -->
@@ -887,8 +1005,8 @@ select.form-input option{background:var(--bg2)}
 // ════════════════════════════════
 // CONFIG — replace with your keys
 // ════════════════════════════════
-const SB_URL = 'https://gyjuqztntshlrniryzjw.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5anVxenRudHNobHJuaXJ5emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2OTcwMDIsImV4cCI6MjA5ODI3MzAwMn0.wqJ7LwDGGZXd7XKh45Tp0XRG77O40u_kuVtd9LOAtuU';
+const SB_URL = 'YOUR_SUPABASE_URL';
+const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
 const BUCKET = 'book-docs';
 const H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 
@@ -1061,6 +1179,7 @@ const TAB_CFG={
   tasks:{title:'Tasks',label:'Add Task',fn:openNewTask},
   milestones:{title:'Milestones',label:'Add Milestone',fn:openNewMs},
   sessions:{title:'Sessions',label:'Log Session',fn:openNewSess},
+  bookdev:{title:'Book Development',label:'',fn:()=>{}},
 };
 function showTab(tab,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -1087,6 +1206,7 @@ function showTab(tab,el){
   else if(tab==='tasks')renderTasks();
   else if(tab==='milestones')renderMs();
   else if(tab==='sessions')renderSessions();
+  else if(tab==='bookdev')renderBookDev();
   setTimeout(()=>bgRefresh(tab),100);
 }
 async function bgRefresh(tab){
@@ -1597,6 +1717,76 @@ function fIcon(t){if(!t)return'📁';if(t.includes('pdf'))return'📄';if(t.incl
 function fmtBytes(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return(b/Math.pow(k,i)).toFixed(1)+' '+s[i];}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
 let _toast;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_toast);_toast=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ════════════════════════════════
+// BOOK DEVELOPMENT (AI PARSING)
+// ════════════════════════════════
+let bdExtractedText='',bdAnalysisResult=null;
+function renderBookDev(){const key=localStorage.getItem('wr_ak');const setup=document.getElementById('bd-setup');const ks=document.getElementById('bd-key-set');if(key){if(setup)setup.style.display='none';if(ks)ks.style.display='flex';}else{if(setup)setup.style.display='block';if(ks)ks.style.display='none';}bdCheckReady();}
+function saveBdKey(){const v=document.getElementById('bd-key-input').value.trim();if(!v||!v.startsWith('sk-')){toast('Key should start with sk-ant-…');return;}localStorage.setItem('wr_ak',v);toast('API key saved');renderBookDev();}
+function clearBdKey(){if(!confirm('Remove your saved API key?'))return;localStorage.removeItem('wr_ak');renderBookDev();toast('Key removed');}
+async function bdHandleFile(e){const file=e.target.files[0];if(!file)return;document.getElementById('bd-fname').textContent=file.name+' ('+fmtBytes(file.size)+')';document.getElementById('bd-file-name').style.display='flex';document.getElementById('bd-text-input').value='';toast('Reading '+file.name+'…');const type=file.name.split('.').pop().toLowerCase();try{if(type==='txt'||type==='md'){bdExtractedText=await file.text();}else if(type==='docx'||type==='doc'){const ab=await file.arrayBuffer();if(typeof mammoth==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';document.head.appendChild(s);await new Promise(r=>s.onload=r);}const result=await mammoth.extractRawText({arrayBuffer:ab});bdExtractedText=result.value;}else if(type==='pdf'){if(typeof pdfjsLib==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';document.head.appendChild(s);await new Promise(r=>s.onload=r);}pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const ab=await file.arrayBuffer();const pdf=await pdfjsLib.getDocument({data:ab}).promise;let text='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();text+=content.items.map(item=>item.str).join(' ')+'\n';}bdExtractedText=text;}toast('✓ '+file.name+' ready');bdCheckReady();}catch(err){toast('Could not read file — try pasting the text directly');console.error('BD file error:',err);}}
+function bdClearFile(){bdExtractedText='';document.getElementById('bd-file-name').style.display='none';document.getElementById('bd-file-input').value='';bdCheckReady();}
+function bdCheckReady(){const hasText=bdExtractedText.trim().length>0||(document.getElementById('bd-text-input')&&document.getElementById('bd-text-input').value.trim().length>0);const hasKey=!!localStorage.getItem('wr_ak');const btn=document.getElementById('bd-analyze-btn');if(btn)btn.disabled=!(hasText&&hasKey);}
+async function runBdAnalysis(){
+  const key=localStorage.getItem('wr_ak');if(!key){toast('Add your API key first');renderBookDev();return;}
+  const rawText=bdExtractedText||document.getElementById('bd-text-input').value.trim();if(!rawText){toast('Upload a file or paste text first');return;}
+  const docText=rawText.length>50000?rawText.slice(0,50000)+'\n\n[Document truncated]':rawText;
+  const wantOv=document.getElementById('bd-opt-overview').checked;
+  const wantCh=document.getElementById('bd-opt-chars').checked;
+  const wantTl=document.getElementById('bd-opt-timeline').checked;
+  const wantId=document.getElementById('bd-opt-ideas').checked;
+  const spec=[];
+  if(wantOv)spec.push('"book_overview":{"suggested_title":"...","genre":"one of: Literary Fiction, Commercial Fiction, Mystery/Thriller, Romance, Fantasy, Science Fiction, Historical Fiction, Horror, Young Adult, Middle Grade, Memoir/Creative Nonfiction, Other","description":"2-3 sentence description","word_count_goal":80000}');
+  if(wantCh)spec.push('"characters":[{"name":"...","role":"Protagonist/Antagonist/Supporting/etc","trait":"core trait","flaw":"main flaw","arc":"arc summary","notes":"other details"}]');
+  if(wantTl)spec.push('"timeline_events":[{"title":"...","description":"what happens","chapter":"Ch. X or estimate","part":"1","sort_order":10}]');
+  if(wantId)spec.push('"ideas":[{"category":"plot or character or theme or world or misc","content":"the idea"}]');
+  spec.push('"analysis_notes":"2-3 sentences of key observations"');
+  const prompt=`You are a literary analyst helping set up a novel development workspace.\n\nAnalyze the following document and extract structured information. The document may be a manuscript, synopsis, outline, chapter, or rough notes.\n\nRespond ONLY with valid JSON. No preamble, no explanation, no markdown code fences. Use exactly this structure:\n\n{\n  ${spec.join(',\n  ')}\n}\n\nOnly include characters you are confident about. For timeline, focus on clear plot events in narrative order. Keep ideas focused and useful.\n\nDocument:\n${docText}`;
+  document.getElementById('bd-analyze-btn').style.display='none';
+  document.getElementById('bd-loading').style.display='block';
+  document.getElementById('bd-results').style.display='none';
+  const msgs=['Reading document…','Identifying characters…','Mapping the plot…','Extracting themes and ideas…','Finalizing analysis…'];
+  let mi=0;const mt=setInterval(()=>{mi=(mi+1)%msgs.length;const el=document.getElementById('bd-loading-msg');if(el)el.textContent=msgs[mi];},3000);
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+    clearInterval(mt);
+    if(!response.ok){const et=await response.text();throw new Error('API '+response.status+': '+et.slice(0,200));}
+    const data=await response.json();
+    const raw=data.content[0].text.trim();
+    const clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
+    bdAnalysisResult=JSON.parse(clean);
+    document.getElementById('bd-loading').style.display='none';
+    document.getElementById('bd-analyze-btn').style.display='';
+    renderBdResults(bdAnalysisResult);
+  }catch(err){
+    clearInterval(mt);
+    document.getElementById('bd-loading').style.display='none';
+    document.getElementById('bd-analyze-btn').style.display='';
+    console.error('BD error:',err);
+    if(err.message.includes('401')){toast('API key invalid — check and try again');clearBdKey();}
+    else if(err.message.includes('JSON')){toast('Unexpected response — try again');}
+    else toast('Analysis failed: '+err.message.slice(0,60));
+  }
+}
+function renderBdResults(r){
+  document.getElementById('bd-results').style.display='block';
+  if(r.analysis_notes){document.getElementById('bd-notes-section').style.display='block';document.getElementById('bd-notes-text').textContent=r.analysis_notes;}
+  if(r.book_overview){const ov=r.book_overview;document.getElementById('bd-overview-section').style.display='block';document.getElementById('bd-overview-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:6px"><div><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Title</span><div style="margin-top:2px">${esc(ov.suggested_title||'—')}</div></div><div><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Genre</span><div style="margin-top:2px">${esc(ov.genre||'—')}</div></div><div><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Description</span><div style="margin-top:2px;line-height:1.55">${esc(ov.description||'—')}</div></div></div>`;}
+  const chars=r.characters||[];if(chars.length){document.getElementById('bd-chars-section').style.display='block';document.getElementById('bd-chars-count').textContent=chars.length;document.getElementById('bd-chars-list').innerHTML=chars.map((c,i)=>{const ex=characters.find(x=>x.name.toLowerCase()===(c.name||'').toLowerCase());return`<div id="bd-char-${i}" style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name||'')}</span><span style="font-size:10px;padding:1px 7px;border-radius:10px;background:var(--bg2);color:var(--text3)">${esc(c.role||'')}</span>${ex?`<span style="font-size:10px;padding:1px 7px;border-radius:10px;background:rgba(184,120,0,.12);color:var(--amber)">already exists</span>`:''}</div>${c.trait?`<div style="font-size:12px;color:var(--text2)"><strong>Trait:</strong> ${esc(c.trait)}</div>`:''} ${c.flaw?`<div style="font-size:12px;color:var(--text2)"><strong>Flaw:</strong> ${esc(c.flaw)}</div>`:''} ${c.arc?`<div style="font-size:12px;color:var(--text2)"><strong>Arc:</strong> ${esc(c.arc)}</div>`:''}</div><button class="btn btn-sm btn-primary" onclick="bdImportChar(${i})" style="font-size:11px;padding:3px 9px;white-space:nowrap;flex-shrink:0">${ex?'Import Anyway':'Import'}</button></div>`;}).join('');}
+  const evs=r.timeline_events||[];if(evs.length){document.getElementById('bd-timeline-section').style.display='block';document.getElementById('bd-tl-count').textContent=evs.length;document.getElementById('bd-tl-list').innerHTML=evs.map((ev,i)=>{const ex=events.find(x=>x.title.toLowerCase()===(ev.title||'').toLowerCase());return`<div id="bd-ev-${i}" style="background:var(--bg3);border-radius:var(--radius-sm);padding:9px 12px;display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px"><span style="font-size:13px;font-weight:500;color:var(--text)">${esc(ev.title||'')}</span>${ev.chapter?`<span style="font-size:10px;padding:1px 6px;border-radius:8px;background:var(--bg2);color:var(--text3)">${esc(ev.chapter)}</span>`:''} ${ex?`<span style="font-size:10px;padding:1px 7px;border-radius:10px;background:rgba(184,120,0,.12);color:var(--amber)">already exists</span>`:''}</div>${ev.description?`<div style="font-size:12px;color:var(--text2);line-height:1.45">${esc(ev.description)}</div>`:''}</div><button class="btn btn-sm btn-primary" onclick="bdImportEvent(${i})" style="font-size:11px;padding:3px 9px;white-space:nowrap;flex-shrink:0">${ex?'Import Anyway':'Import'}</button></div>`;}).join('');}
+  const ideasList=r.ideas||[];if(ideasList.length){document.getElementById('bd-ideas-section').style.display='block';document.getElementById('bd-ideas-count').textContent=ideasList.length;document.getElementById('bd-ideas-list').innerHTML=ideasList.map((id,i)=>`<div id="bd-idea-${i}" style="background:var(--bg3);border-radius:var(--radius-sm);padding:9px 12px;display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">${catLabel(id.category||'misc')}</span><div style="font-size:13px;color:var(--text);margin-top:3px;line-height:1.5">${esc(id.content||'')}</div></div><button class="btn btn-sm btn-primary" onclick="bdImportIdea(${i})" style="font-size:11px;padding:3px 9px;white-space:nowrap;flex-shrink:0">Import</button></div>`).join('');}
+  toast('Analysis complete!');
+}
+function bdMarkImported(elId){const el=document.getElementById(elId);if(!el)return;el.style.opacity='.45';const btn=el.querySelector('button');if(btn){btn.textContent='✓ Imported';btn.disabled=true;}}
+async function bdImportOverview(){if(!bdAnalysisResult||!bdAnalysisResult.book_overview)return;const ov=bdAnalysisResult.book_overview;const updates={};if(ov.suggested_title&&ov.suggested_title!==currentBook.title){if(confirm(`Update book title to "${ov.suggested_title}"?`))updates.title=ov.suggested_title;}if(ov.genre)updates.genre=ov.genre;if(ov.description)updates.description=ov.description;if(ov.word_count_goal)updates.word_count_goal=ov.word_count_goal;if(Object.keys(updates).length){updates.updated_at=new Date().toISOString();await sb(`books?id=eq.${bookId}`,{method:'PATCH',body:JSON.stringify(updates)});Object.assign(currentBook,updates);updateBookHeader();await loadBooks();toast('Book overview updated!');logActivity('Imported book overview from AI analysis');}else toast('Nothing new to import');}
+async function bdImportChar(i){if(!bdAnalysisResult||!bdAnalysisResult.characters)return;const c=bdAnalysisResult.characters[i];const ex=characters.find(x=>x.name.toLowerCase()===(c.name||'').toLowerCase());if(ex&&!confirm(`"${c.name}" already exists. Import anyway?`))return;await sb('characters',{method:'POST',body:JSON.stringify({book_id:bookId,name:c.name||'Unknown',role:c.role||'',color:'#8B3A3A',trait:c.trait||'',flaw:c.flaw||'',arc:c.arc||'',notes:c.notes||''}),headers:{...H,'Prefer':'return=representation'}});await loadChars();bdMarkImported('bd-char-'+i);toast(c.name+' added to Characters');logActivity(`Imported character "${c.name}" from AI analysis`);}
+async function bdImportAllChars(){if(!bdAnalysisResult||!bdAnalysisResult.characters)return;const dupes=bdAnalysisResult.characters.filter(c=>characters.find(x=>x.name.toLowerCase()===(c.name||'').toLowerCase()));if(dupes.length&&!confirm(`${dupes.length} character(s) already exist (${dupes.map(d=>d.name).join(', ')}). Import all anyway?`))return;for(let i=0;i<bdAnalysisResult.characters.length;i++){const c=bdAnalysisResult.characters[i];await sb('characters',{method:'POST',body:JSON.stringify({book_id:bookId,name:c.name||'Unknown',role:c.role||'',color:'#8B3A3A',trait:c.trait||'',flaw:c.flaw||'',arc:c.arc||'',notes:c.notes||''}),headers:{...H,'Prefer':'return=representation'}});bdMarkImported('bd-char-'+i);}await loadChars();toast('All characters imported!');logActivity('Imported characters from AI analysis');}
+async function bdImportEvent(i){if(!bdAnalysisResult||!bdAnalysisResult.timeline_events)return;const ev=bdAnalysisResult.timeline_events[i];const ex=events.find(x=>x.title.toLowerCase()===(ev.title||'').toLowerCase());if(ex&&!confirm(`"${ev.title}" already exists. Import anyway?`))return;await sb('timeline_events',{method:'POST',body:JSON.stringify({book_id:bookId,title:ev.title||'Event',description:ev.description||'',chapter:ev.chapter||'',part:ev.part||'1',sort_order:ev.sort_order||999}),headers:{...H,'Prefer':'return=representation'}});await loadEvents();bdMarkImported('bd-ev-'+i);toast('Event added to Timeline');}
+async function bdImportAllEvents(){if(!bdAnalysisResult||!bdAnalysisResult.timeline_events)return;const dupes=bdAnalysisResult.timeline_events.filter(ev=>events.find(x=>x.title.toLowerCase()===(ev.title||'').toLowerCase()));if(dupes.length&&!confirm(`${dupes.length} event(s) may already exist. Import all anyway?`))return;for(let i=0;i<bdAnalysisResult.timeline_events.length;i++){const ev=bdAnalysisResult.timeline_events[i];await sb('timeline_events',{method:'POST',body:JSON.stringify({book_id:bookId,title:ev.title||'Event',description:ev.description||'',chapter:ev.chapter||'',part:ev.part||'1',sort_order:ev.sort_order||999}),headers:{...H,'Prefer':'return=representation'}});bdMarkImported('bd-ev-'+i);}await loadEvents();toast('All timeline events imported!');logActivity('Imported timeline from AI analysis');}
+async function bdImportIdea(i){if(!bdAnalysisResult||!bdAnalysisResult.ideas)return;const idea=bdAnalysisResult.ideas[i];await sb('ideas',{method:'POST',body:JSON.stringify({book_id:bookId,category:idea.category||'misc',content:idea.content||'',author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});await loadIdeas();bdMarkImported('bd-idea-'+i);toast('Idea added!');}
+async function bdImportAllIdeas(){if(!bdAnalysisResult||!bdAnalysisResult.ideas)return;for(let i=0;i<bdAnalysisResult.ideas.length;i++){const idea=bdAnalysisResult.ideas[i];await sb('ideas',{method:'POST',body:JSON.stringify({book_id:bookId,category:idea.category||'misc',content:idea.content||'',author_name:displayName}),headers:{...H,'Prefer':'return=representation'}});bdMarkImported('bd-idea-'+i);}await loadIdeas();toast('All ideas imported!');logActivity('Imported ideas from AI analysis');}
+function bdClearResults(){bdAnalysisResult=null;document.getElementById('bd-results').style.display='none';['bd-notes-section','bd-overview-section','bd-chars-section','bd-timeline-section','bd-ideas-section'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
 
 // ════════════════════════════════
 // BOOT
