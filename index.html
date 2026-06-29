@@ -510,27 +510,6 @@ select.form-input option{background:var(--bg2)}
 
       <!-- BOOK DEVELOPMENT -->
       <div id="tab-bookdev" class="tab">
-        <!-- API Key Setup -->
-        <div id="bd-setup" style="display:none;background:var(--bg2);border:1px solid var(--amber);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <i class="fas fa-key" style="color:var(--amber)"></i>
-            <span style="font-size:13px;font-weight:600;color:var(--text)">Anthropic API Key Required</span>
-          </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Enter your Anthropic API key to enable AI analysis. It's stored locally in your browser and never sent anywhere except directly to Anthropic.</p>
-          <div style="display:flex;gap:8px">
-            <input type="password" id="bd-key-input" class="form-input" placeholder="sk-ant-api03-..." style="flex:1;font-size:12px"/>
-            <button class="btn btn-primary btn-sm" onclick="saveBdKey()">Save Key</button>
-          </div>
-          <div style="margin-top:8px;font-size:11px;color:var(--text3)">Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a> → API Keys</div>
-        </div>
-
-        <!-- Key saved indicator -->
-        <div id="bd-key-set" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;gap:8px">
-          <i class="fas fa-check-circle" style="color:var(--green)"></i>
-          <span style="font-size:12px;color:var(--text2);flex:1">API key set</span>
-          <button onclick="clearBdKey()" class="btn btn-sm" style="font-size:11px;color:var(--red);border-color:var(--red)">Remove</button>
-        </div>
-
         <!-- Upload area -->
         <div style="margin-bottom:16px">
           <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;font-family:Georgia,serif">Book Development</div>
@@ -1722,14 +1701,11 @@ let _toast;function toast(msg){const t=document.getElementById('toast');t.textCo
 // BOOK DEVELOPMENT (AI PARSING)
 // ════════════════════════════════
 let bdExtractedText='',bdAnalysisResult=null;
-function renderBookDev(){const key=localStorage.getItem('wr_ak');const setup=document.getElementById('bd-setup');const ks=document.getElementById('bd-key-set');if(key){if(setup)setup.style.display='none';if(ks)ks.style.display='flex';}else{if(setup)setup.style.display='block';if(ks)ks.style.display='none';}bdCheckReady();}
-function saveBdKey(){const v=document.getElementById('bd-key-input').value.trim();if(!v||!v.startsWith('sk-')){toast('Key should start with sk-ant-…');return;}localStorage.setItem('wr_ak',v);toast('API key saved');renderBookDev();}
-function clearBdKey(){if(!confirm('Remove your saved API key?'))return;localStorage.removeItem('wr_ak');renderBookDev();toast('Key removed');}
+function renderBookDev(){bdCheckReady();}
+function bdCheckReady(){const hasText=bdExtractedText.trim().length>0||(document.getElementById('bd-text-input')&&document.getElementById('bd-text-input').value.trim().length>0);const btn=document.getElementById('bd-analyze-btn');if(btn)btn.disabled=!hasText;}
 async function bdHandleFile(e){const file=e.target.files[0];if(!file)return;document.getElementById('bd-fname').textContent=file.name+' ('+fmtBytes(file.size)+')';document.getElementById('bd-file-name').style.display='flex';document.getElementById('bd-text-input').value='';toast('Reading '+file.name+'…');const type=file.name.split('.').pop().toLowerCase();try{if(type==='txt'||type==='md'){bdExtractedText=await file.text();}else if(type==='docx'||type==='doc'){const ab=await file.arrayBuffer();if(typeof mammoth==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';document.head.appendChild(s);await new Promise(r=>s.onload=r);}const result=await mammoth.extractRawText({arrayBuffer:ab});bdExtractedText=result.value;}else if(type==='pdf'){if(typeof pdfjsLib==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';document.head.appendChild(s);await new Promise(r=>s.onload=r);}pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const ab=await file.arrayBuffer();const pdf=await pdfjsLib.getDocument({data:ab}).promise;let text='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();text+=content.items.map(item=>item.str).join(' ')+'\n';}bdExtractedText=text;}toast('✓ '+file.name+' ready');bdCheckReady();}catch(err){toast('Could not read file — try pasting the text directly');console.error('BD file error:',err);}}
 function bdClearFile(){bdExtractedText='';document.getElementById('bd-file-name').style.display='none';document.getElementById('bd-file-input').value='';bdCheckReady();}
-function bdCheckReady(){const hasText=bdExtractedText.trim().length>0||(document.getElementById('bd-text-input')&&document.getElementById('bd-text-input').value.trim().length>0);const hasKey=!!localStorage.getItem('wr_ak');const btn=document.getElementById('bd-analyze-btn');if(btn)btn.disabled=!(hasText&&hasKey);}
 async function runBdAnalysis(){
-  const key=localStorage.getItem('wr_ak');if(!key){toast('Add your API key first');renderBookDev();return;}
   const rawText=bdExtractedText||document.getElementById('bd-text-input').value.trim();if(!rawText){toast('Upload a file or paste text first');return;}
   const docText=rawText.length>50000?rawText.slice(0,50000)+'\n\n[Document truncated]':rawText;
   const wantOv=document.getElementById('bd-opt-overview').checked;
@@ -1749,10 +1725,11 @@ async function runBdAnalysis(){
   const msgs=['Reading document…','Identifying characters…','Mapping the plot…','Extracting themes and ideas…','Finalizing analysis…'];
   let mi=0;const mt=setInterval(()=>{mi=(mi+1)%msgs.length;const el=document.getElementById('bd-loading-msg');if(el)el.textContent=msgs[mi];},3000);
   try{
-    const response=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+    const response=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
     clearInterval(mt);
-    if(!response.ok){const et=await response.text();throw new Error('API '+response.status+': '+et.slice(0,200));}
+    if(!response.ok){const et=await response.text();throw new Error('Function error '+response.status+': '+et.slice(0,200));}
     const data=await response.json();
+    if(data.error)throw new Error(data.error);
     const raw=data.content[0].text.trim();
     const clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
     bdAnalysisResult=JSON.parse(clean);
@@ -1764,7 +1741,7 @@ async function runBdAnalysis(){
     document.getElementById('bd-loading').style.display='none';
     document.getElementById('bd-analyze-btn').style.display='';
     console.error('BD error:',err);
-    if(err.message.includes('401')){toast('API key invalid — check and try again');clearBdKey();}
+    if(err.message.includes('ANTHROPIC_API_KEY')){toast('API key not configured — add it in Netlify environment variables');}
     else if(err.message.includes('JSON')){toast('Unexpected response — try again');}
     else toast('Analysis failed: '+err.message.slice(0,60));
   }
