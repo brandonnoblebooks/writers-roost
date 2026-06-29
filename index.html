@@ -1707,7 +1707,7 @@ async function bdHandleFile(e){const file=e.target.files[0];if(!file)return;docu
 function bdClearFile(){bdExtractedText='';document.getElementById('bd-file-name').style.display='none';document.getElementById('bd-file-input').value='';bdCheckReady();}
 async function runBdAnalysis(){
   const rawText=bdExtractedText||document.getElementById('bd-text-input').value.trim();if(!rawText){toast('Upload a file or paste text first');return;}
-  const docText=rawText.length>50000?rawText.slice(0,50000)+'\n\n[Document truncated]':rawText;
+  const docText=rawText.length>10000?rawText.slice(0,10000)+'\n\n[Document truncated for length]':rawText;
   const wantOv=document.getElementById('bd-opt-overview').checked;
   const wantCh=document.getElementById('bd-opt-chars').checked;
   const wantTl=document.getElementById('bd-opt-timeline').checked;
@@ -1725,7 +1725,7 @@ async function runBdAnalysis(){
   const msgs=['Reading document…','Identifying characters…','Mapping the plot…','Extracting themes and ideas…','Finalizing analysis…'];
   let mi=0;const mt=setInterval(()=>{mi=(mi+1)%msgs.length;const el=document.getElementById('bd-loading-msg');if(el)el.textContent=msgs[mi];},3000);
   try{
-    const response=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
     clearInterval(mt);
     if(!response.ok){const et=await response.text();throw new Error('Function error '+response.status+': '+et.slice(0,200));}
     const data=await response.json();
