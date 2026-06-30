@@ -343,6 +343,7 @@ select.form-input option{background:var(--bg2)}
           <div class="sidebar-book-name nav-label" id="sidebar-book-name" onclick="goToShelf()" title="Back to My Books">← My Books</div>
           <div class="sidebar-book-genre nav-label" id="sidebar-book-genre"></div>
         </div>
+        <button class="collapse-btn nav-label" onclick="openEditBook()" title="Edit book settings" style="color:var(--text3);margin-right:2px"><i class="fas fa-cog"></i></button>
         <button class="collapse-btn" onclick="toggleSidebar()" id="collapse-btn"><i class="fas fa-chevron-left" id="collapse-icon"></i></button>
       </div>
     </div>
@@ -524,7 +525,7 @@ select.form-input option{background:var(--bg2)}
 
           <div style="margin-bottom:8px;font-size:11px;color:var(--text3);text-align:center">— or paste text directly —</div>
           <textarea id="bd-text-input" class="form-input" placeholder="Paste your synopsis, outline, chapter, or notes here…" style="min-height:120px;font-size:13px" oninput="bdCheckReady()"></textarea>
-          <div id="bd-file-name" style="display:none;font-size:12px;color:var(--green);margin-top:6px;display:flex;align-items:center;gap:6px">
+          <div id="bd-file-name" style="display:none;font-size:12px;color:var(--green);margin-top:6px;align-items:center;gap:6px">
             <i class="fas fa-file-check"></i><span id="bd-fname"></span>
             <button onclick="bdClearFile()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;margin-left:auto"><i class="fas fa-times"></i></button>
           </div>
@@ -1230,7 +1231,14 @@ function sLabel(s){return{outline:'Outline',draft:'Draft',review:'In Review',don
 function sColor(s){return{outline:'var(--text3)',draft:'var(--blue)',review:'var(--amber)',done:'var(--green)'}[s]||'var(--text3)';}
 async function qStatus(e,id,status){e.stopPropagation();await sb(`chapters?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({status,updated_at:new Date().toISOString()})});const i=chapters.findIndex(c=>c.id===id);if(i>=0)chapters[i].status=status;renderChapters();renderDashboard();toast('→ '+sLabel(status));}
 function openNewChapter(){document.getElementById('modal-chap-title').textContent='Add Chapter';document.getElementById('ch-num').value=chapters.length+1;['ch-title','ch-pov','ch-part','ch-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ch-status').value='outline';document.getElementById('ch-id').value='';openModal('modal-chapter');}
-async function saveChapter(){const p={book_id:bookId,number:parseInt(document.getElementById('ch-num').value)||1,title:document.getElementById('ch-title').value.trim()||'Untitled',status:document.getElementById('ch-status').value,pov:document.getElementById('ch-pov').value.trim(),part:document.getElementById('ch-part').value.trim(),notes:document.getElementById('ch-notes').value.trim(),word_count:0,updated_at:new Date().toISOString()};const id=document.getElementById('ch-id').value;if(id){await sb(`chapters?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});toast('Chapter updated');}else{await sb('chapters',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});toast('Chapter added');logActivity(`Added chapter "${p.title}"`);}closeModal('modal-chapter');await loadChapters();renderChapters();renderDashboard();}
+async function saveChapter(){
+  const id=document.getElementById('ch-id').value;
+  const p={book_id:bookId,number:parseInt(document.getElementById('ch-num').value)||1,title:document.getElementById('ch-title').value.trim()||'Untitled',status:document.getElementById('ch-status').value,pov:document.getElementById('ch-pov').value.trim(),part:document.getElementById('ch-part').value.trim(),notes:document.getElementById('ch-notes').value.trim(),updated_at:new Date().toISOString()};
+  if(!id) p.word_count=0; // only set 0 for new chapters; edits preserve existing count
+  if(id){await sb(`chapters?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(p)});toast('Chapter updated');}
+  else{await sb('chapters',{method:'POST',body:JSON.stringify(p),headers:{...H,'Prefer':'return=representation'}});toast('Chapter added');logActivity(`Added chapter "${p.title}"`);}
+  closeModal('modal-chapter');await loadChapters();renderChapters();renderDashboard();
+}
 
 // ════════════════════════════════
 // CHAPTER EDITOR
@@ -1707,36 +1715,51 @@ async function bdHandleFile(e){const file=e.target.files[0];if(!file)return;docu
 function bdClearFile(){bdExtractedText='';document.getElementById('bd-file-name').style.display='none';document.getElementById('bd-file-input').value='';bdCheckReady();}
 async function runBdAnalysis(){
   const rawText=bdExtractedText||document.getElementById('bd-text-input').value.trim();if(!rawText){toast('Upload a file or paste text first');return;}
-  const docText=rawText.length>10000?rawText.slice(0,10000)+'\n\n[Document truncated for length]':rawText;
+  const docText=rawText.length>10000?rawText.slice(0,10000)+'\n\n[Document truncated]':rawText;
   const wantOv=document.getElementById('bd-opt-overview').checked;
   const wantCh=document.getElementById('bd-opt-chars').checked;
   const wantTl=document.getElementById('bd-opt-timeline').checked;
   const wantId=document.getElementById('bd-opt-ideas').checked;
-  const spec=[];
-  if(wantOv)spec.push('"book_overview":{"suggested_title":"...","genre":"one of: Literary Fiction, Commercial Fiction, Mystery/Thriller, Romance, Fantasy, Science Fiction, Historical Fiction, Horror, Young Adult, Middle Grade, Memoir/Creative Nonfiction, Other","description":"2-3 sentence description","word_count_goal":80000}');
-  if(wantCh)spec.push('"characters":[{"name":"...","role":"Protagonist/Antagonist/Supporting/etc","trait":"core trait","flaw":"main flaw","arc":"arc summary","notes":"other details"}]');
-  if(wantTl)spec.push('"timeline_events":[{"title":"...","description":"what happens","chapter":"Ch. X or estimate","part":"1","sort_order":10}]');
-  if(wantId)spec.push('"ideas":[{"category":"plot or character or theme or world or misc","content":"the idea"}]');
-  spec.push('"analysis_notes":"2-3 sentences of key observations"');
-  const prompt=`You are a literary analyst extracting structured data from a document for a novel workspace app.
 
-CRITICAL RULES:
-- Respond ONLY with a single valid JSON object. Nothing before or after it.
-- No markdown, no code fences, no explanation.
-- All string values must be your own concise summaries — do NOT copy raw text from the document.
-- Keep every string value under 150 characters.
-- Escape any apostrophes or special characters properly.
-- If a field is unknown, use an empty string, not null.
+  // Build what sections to request
+  const sections=[];
+  if(wantOv)sections.push(`[OVERVIEW]
+title: the book title or best guess
+genre: one of: Literary Fiction, Commercial Fiction, Mystery/Thriller, Romance, Fantasy, Science Fiction, Historical Fiction, Horror, Young Adult, Middle Grade, Memoir/Creative Nonfiction, Other
+description: 2-3 sentence plain text description`);
+  if(wantCh)sections.push(`[CHARACTER]
+name: character name
+role: Protagonist, Antagonist, Supporting, or Minor
+trait: core defining quality
+flaw: main weakness or blind spot
+arc: how they change across the story
+notes: any other important detail
+(repeat [CHARACTER] block for each named character)`);
+  if(wantTl)sections.push(`[EVENT]
+title: event name
+description: what happens in plain text
+chapter: chapter number or estimate
+part: 1
+order: 10
+(repeat [EVENT] block for each major plot event, in story order)`);
+  if(wantId)sections.push(`[IDEA]
+category: plot, character, theme, world, or misc
+content: the idea or observation in plain text
+(repeat [IDEA] block for each idea)`);
+  sections.push(`[NOTES]
+Your 2-3 sentence overall analysis of the document`);
 
-Use this exact JSON structure:
-{
-  ${spec.join(',\n  ')}
-}
+  const prompt=`You are a literary analyst extracting information from a document for a novel workspace app.
 
-Only include characters with a clear name and meaningful presence. For timeline, include only distinct plot events in order.
+Use ONLY the section format below. Plain text values only — no JSON, no quotes, no special formatting, no markdown. Each value must be on a single line. Keep values concise (under 120 characters per line).
 
-Document to analyze:
+${sections.join('\n\n')}
+
+Only include characters with a clear name and meaningful presence in the text. Only include distinct plot events for timeline.
+
+Document:
 ${docText}`;
+
   document.getElementById('bd-analyze-btn').style.display='none';
   document.getElementById('bd-loading').style.display='block';
   document.getElementById('bd-results').style.display='none';
@@ -1749,15 +1772,29 @@ ${docText}`;
     const data=await response.json();
     if(data.error)throw new Error(data.error);
     const raw=data.content[0].text.trim();
-    let clean=raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
-    const start=clean.indexOf('{');const end=clean.lastIndexOf('}');
-    if(start!==-1&&end>start)clean=clean.slice(start,end+1);
-    // String-aware sanitizer: tracks in/out of JSON strings
-    // Fixes invalid escapes AND literal control chars inside string values
-    function sanitizeJson(s){let r='',i=0,inStr=false;while(i<s.length){const c=s[i];if(inStr){if(c==='\\'&&i+1<s.length){const n=s[i+1];if(['"','\\','/','b','f','n','r','t'].includes(n)){r+='\\'+n;i+=2;}else if(n==='u'&&/[0-9a-fA-F]{4}/.test(s.slice(i+2,i+6))){r+='\\u'+s.slice(i+2,i+6);i+=6;}else{r+=n;i+=2;}}else if(c==='"'){inStr=false;r+=c;i++;}else if(c.charCodeAt(0)<32){const m={'\n':'\\n','\r':'\\r','\t':'\\t','\b':'\\b','\f':'\\f'};r+=m[c]||('\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));i++;}else{r+=c;i++;}}else{if(c==='"')inStr=true;r+=c;i++;}}return r;}
-    clean=sanitizeJson(clean);
-    console.log('Raw Claude response:',raw.slice(0,800));
-    bdAnalysisResult=JSON.parse(clean);
+    console.log('Raw Claude response:',raw.slice(0,1000));
+    // Parse the delimiter format — no JSON, no escaping issues
+    function parseDelimited(text){
+      const result={book_overview:null,characters:[],timeline_events:[],ideas:[],analysis_notes:''};
+      const blocks=text.split(/(?=\[(?:OVERVIEW|CHARACTER|EVENT|IDEA|NOTES)\])/i);
+      blocks.forEach(block=>{
+        const typeMatch=block.match(/^\[([A-Z]+)\]/i);if(!typeMatch)return;
+        const type=typeMatch[1].toUpperCase();
+        const lines=block.slice(typeMatch[0].length).trim().split('\n');
+        const f={};
+        lines.forEach(line=>{
+          const ci=line.indexOf(':');
+          if(ci>0){const k=line.slice(0,ci).trim().toLowerCase();const v=line.slice(ci+1).trim();if(v&&v.length>0)f[k]=v;}
+        });
+        if(type==='OVERVIEW'){result.book_overview={suggested_title:f.title||'',genre:f.genre||'',description:f.description||'',word_count_goal:80000};}
+        else if(type==='CHARACTER'&&f.name){result.characters.push({name:f.name,role:f.role||'',trait:f.trait||'',flaw:f.flaw||'',arc:f.arc||'',notes:f.notes||''});}
+        else if(type==='EVENT'&&f.title){result.timeline_events.push({title:f.title,description:f.description||'',chapter:f.chapter||'',part:f.part||'1',sort_order:parseInt(f.order)||999});}
+        else if(type==='IDEA'&&f.content){result.ideas.push({category:f.category||'misc',content:f.content});}
+        else if(type==='NOTES'){result.analysis_notes=block.slice(typeMatch[0].length).trim();}
+      });
+      return result;
+    }
+    bdAnalysisResult=parseDelimited(raw);
     document.getElementById('bd-loading').style.display='none';
     document.getElementById('bd-analyze-btn').style.display='';
     renderBdResults(bdAnalysisResult);
